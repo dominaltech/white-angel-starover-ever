@@ -11,11 +11,14 @@ window.ManageTab = {
     const decContainer = document.getElementById('manageDecorationRates');
     if (decContainer) {
       decContainer.innerHTML = rates.decoration.map((item, idx) => `
-        <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; background: var(--bg-input); color: var(--text-main); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
-          <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">${item.name}</span>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: bold;">₹</span>
-            <input type="number" class="form-input rate-dec-input" data-index="${idx}" value="${item.unitPrice}" min="0" style="width: 110px; text-align: right;">
+        <div class="manage-rate-row">
+          <div class="manage-rate-label">
+            <span class="manage-rate-badge">${idx + 1}</span>
+            <span class="manage-rate-title">${item.name}</span>
+          </div>
+          <div class="manage-rate-input-group">
+            <span class="currency-symbol">₹</span>
+            <input type="number" class="form-input rate-dec-input" data-index="${idx}" value="${item.unitPrice}" min="0">
           </div>
         </div>
       `).join('');
@@ -31,11 +34,14 @@ window.ManageTab = {
     const photoContainer = document.getElementById('managePhotoRates');
     if (photoContainer) {
       photoContainer.innerHTML = rates.photography.map((item, idx) => `
-        <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; background: var(--bg-input); color: var(--text-main); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
-          <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">${item.name}</span>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: bold;">₹</span>
-            <input type="number" class="form-input rate-photo-input" data-index="${idx}" value="${item.unitPrice}" min="0" style="width: 110px; text-align: right;">
+        <div class="manage-rate-row">
+          <div class="manage-rate-label">
+            <span class="manage-rate-badge">${idx + 1}</span>
+            <span class="manage-rate-title">${item.name}</span>
+          </div>
+          <div class="manage-rate-input-group">
+            <span class="currency-symbol">₹</span>
+            <input type="number" class="form-input rate-photo-input" data-index="${idx}" value="${item.unitPrice}" min="0">
           </div>
         </div>
       `).join('');
@@ -47,11 +53,14 @@ window.ManageTab = {
     const transContainer = document.getElementById('manageTransportRates');
     if (transContainer) {
       transContainer.innerHTML = rates.transport.map((item, idx) => `
-        <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; background: var(--bg-input); color: var(--text-main); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color);">
-          <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-main);">${item.name}</span>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="color: var(--accent-cyan); font-size: 0.85rem; font-weight: bold;">₹</span>
-            <input type="number" class="form-input rate-trans-input" data-index="${idx}" value="${item.unitPrice}" min="0" style="width: 110px; text-align: right;">
+        <div class="manage-rate-row">
+          <div class="manage-rate-label">
+            <span class="manage-rate-badge">${idx + 1}</span>
+            <span class="manage-rate-title">${item.name}</span>
+          </div>
+          <div class="manage-rate-input-group">
+            <span class="currency-symbol">₹</span>
+            <input type="number" class="form-input rate-trans-input" data-index="${idx}" value="${item.unitPrice}" min="0">
           </div>
         </div>
       `).join('');

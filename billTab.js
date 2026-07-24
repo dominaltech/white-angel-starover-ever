@@ -1,9 +1,8 @@
 // Bill Tab Logic for White Angel Events Quotation System
 window.BillTab = {
   currentQuotationId: null,
-  checkpointShowcases: {}, // Maps itemId or fn_id -> { title, description, unitPrice, photos: [] }
+  checkpointShowcases: {}, // Maps itemId or fn_id -> { title, description, unitPrice, photos: [], pages: [] }
   activeModalItemId: null,
-  modalUploadedPhotos: [],
   letterheadSettings: {
     phoneText: '8149634555 / 9028776555',
     addressText: '17 East, Ayodhya Nagar, Majrewadi, Solapur 413003',
@@ -97,7 +96,7 @@ window.BillTab = {
         </div>
 
         <input type="number" class="chk-price-input" value="${item.unitPrice || 0}" min="0" onchange="window.BillTab.recalculateTotals()" onkeyup="window.BillTab.recalculateTotals()">
-        <button type="button" class="chk-detail-btn ${hasShowcaseData ? 'has-data' : ''}" onclick="window.BillTab.openCheckpointModal('${item.id}')" title="Add Showcase Details & Photos">+</button>
+        <button type="button" class="chk-detail-btn ${hasShowcaseData ? 'has-data' : ''}" onclick="window.BillTab.openVisualPageForCheckpoint('${item.id}')" title="Open Visual Showcase Page">+</button>
       </div>
     `;
   },
@@ -178,36 +177,325 @@ window.BillTab = {
     }
   },
 
-  // ==========================================
-  // CHECKPOINT (+) MODAL & SHOWCASE EDITOR
-  // ==========================================
-  openCheckpointModal(itemId) {
+  toggleCardCollapse(cardBodyId, titleBarEl) {
+    const body = document.getElementById(cardBodyId);
+    if (!body) return;
+    const isHidden = window.getComputedStyle(body).display === 'none';
+    body.style.display = isHidden ? 'block' : 'none';
+    if (titleBarEl) {
+      const chevron = titleBarEl.querySelector('.chevron-svg');
+      if (chevron) {
+        chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
+      const icon = titleBarEl.querySelector('.collapse-icon');
+      if (icon) icon.textContent = isHidden ? '▲' : '▼';
+    }
+  },
+
+  toggleOptionalCard(cardId, pillBtn) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    const isHidden = window.getComputedStyle(card).display === 'none';
+    card.style.display = isHidden ? 'block' : 'none';
+    if (pillBtn) {
+      if (isHidden) {
+        pillBtn.classList.add('active');
+      } else {
+        pillBtn.classList.remove('active');
+      }
+    }
+  },
+
+  // ==========================================================================
+  // FREEFORM SHOWCASE PAGE CREATOR ON "+" BUTTON CLICK
+  // ==========================================================================
+  openVisualPageForCheckpoint(itemId) {
     this.activeModalItemId = itemId;
     const row = document.querySelector(`.compact-checkpoint-item[data-id="${itemId}"]`);
-    const itemName = row ? row.querySelector('.chk-title-input').value : (itemId.startsWith('fn_') ? itemId.replace('fn_', '') + ' Function' : 'Checkpoint Item');
+    if (row) {
+      const checkbox = row.querySelector('.item-checkbox');
+      if (checkbox) checkbox.checked = true;
+      row.classList.add('selected');
+    } else if (itemId.startsWith('fn_')) {
+      const fnName = itemId.replace('fn_', '');
+      const fnCb = Array.from(document.querySelectorAll('.function-checkbox')).find(c => c.value.toLowerCase().includes(fnName.toLowerCase()));
+      if (fnCb) fnCb.checked = true;
+    }
+    this.recalculateTotals();
+
+    const itemName = row ? row.querySelector('.chk-title-input').value : itemId.replace('fn_', '') + ' Setup';
     const itemPrice = row ? row.querySelector('.chk-price-input').value : 0;
-
-    document.getElementById('modalItemId').value = itemId;
-    document.getElementById('modalCheckpointItemName').textContent = `➕ SHOWCASE DETAILS: ${itemName.toUpperCase()}`;
-
     const existing = this.checkpointShowcases[itemId] || {};
-    document.getElementById('modalShowcaseTitle').value = existing.title || `${itemName} Showcase & Setup Details`;
-    document.getElementById('modalShowcaseDesc').value = existing.description || '';
-    document.getElementById('modalShowcasePrice').value = existing.unitPrice !== undefined ? existing.unitPrice : itemPrice;
 
-    this.modalUploadedPhotos = existing.photos ? [...existing.photos] : [];
-    this.renderModalPhotos();
+    const viewport = document.getElementById('pdfEditorViewport');
+    if (!viewport) return;
 
-    document.getElementById('checkpointModal').classList.add('active');
+    if (existing.savedCanvasHtml) {
+      viewport.innerHTML = existing.savedCanvasHtml;
+    } else {
+      // Render initial showcase page
+      viewport.innerHTML = `
+        <div class="wysiwyg-a4-page" id="showcase-page-1" data-showcase-id="${itemId}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
+          
+          <!-- Editable Header Title Bar -->
+          <div class="draggable-pdf-element" style="top: 45px; left: 45px; width: 704px; height: 42px; background: #0056b3; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 15px; font-weight: 800;" contenteditable="true">
+            <span class="drag-handle-badge">✥ Drag Header</span>
+            <span class="corner-resize-handle">⤢</span>
+            <span id="scHeaderTitle">${(existing.title || itemName + ' SHOWCASE & SETUP DETAILS').toUpperCase()}</span>
+          </div>
+
+          <!-- Initial Helper Instructions Dropzone -->
+          <div class="draggable-pdf-element helper-dropzone" style="top: 120px; left: 45px; width: 704px; height: 180px; background: #f8fafe; border: 2px dashed #0088ff; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+            <span class="drag-handle-badge">✥ Drag Notice</span>
+            <span class="corner-resize-handle">⤢</span>
+            <div style="font-size: 14px; font-weight: 800; color: #0056b3; margin-bottom: 6px;">Add Content Cards Anywhere On This Page</div>
+            <div style="font-size: 12px; color: #475569;">Click <strong>📝 Add Description</strong>, <strong>🏷️ Add Total Entry</strong>, or <strong>📷 Upload Image</strong> on top toolbar! (Max 4 images per page)</div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    this.makePdfElementsDraggable();
+
+    // Configure Toolbar for Single Showcase Page Creator Mode
+    if (document.getElementById('editorToolbarTitle')) {
+      document.getElementById('editorToolbarTitle').textContent = `➕ SHOWCASE PAGE: ${itemName.toUpperCase()}`;
+    }
+    if (document.getElementById('btnSaveSinglePage')) document.getElementById('btnSaveSinglePage').style.display = 'inline-flex';
+    if (document.getElementById('btnAddDescription')) document.getElementById('btnAddDescription').style.display = 'inline-flex';
+    if (document.getElementById('btnAddTotalEntry')) document.getElementById('btnAddTotalEntry').style.display = 'inline-flex';
+    if (document.getElementById('btnUploadImage')) document.getElementById('btnUploadImage').style.display = 'inline-flex';
+    if (document.getElementById('btnAddBlankPage')) document.getElementById('btnAddBlankPage').style.display = 'inline-flex';
+    
+    if (document.getElementById('btnExportPdf')) document.getElementById('btnExportPdf').style.display = 'none';
+    if (document.getElementById('btnShareWhatsApp')) document.getElementById('btnShareWhatsApp').style.display = 'none';
+
+    document.getElementById('pdfVisualEditorOverlay').classList.add('active');
   },
 
-  closeCheckpointModal() {
-    document.getElementById('checkpointModal').classList.remove('active');
-    this.activeModalItemId = null;
-    this.modalUploadedPhotos = [];
+  addDescriptionCardToCanvas() {
+    const pages = document.querySelectorAll('.wysiwyg-a4-page');
+    if (pages.length === 0) return;
+    const activePage = pages[pages.length - 1];
+
+    const helper = activePage.querySelector('.helper-dropzone');
+    if (helper) helper.remove();
+
+    const descHtml = `
+      <div class="draggable-pdf-element sc-desc-card" style="top: 120px; left: 45px; width: 340px; height: 280px; background: #f8fafe; border: 1.5px solid #d2e1f5; border-radius: 6px; padding: 16px;">
+        <span class="drag-handle-badge">✥ Drag Description</span>
+        <span class="corner-resize-handle">⤢</span>
+        <div style="font-size: 13px; font-weight: 800; color: #0056b3; margin-bottom: 8px;">SETUP SPECIFICATIONS:</div>
+        <div class="sc-desc-content" style="font-size: 12px; color: #282828; line-height: 1.6; outline: none;" contenteditable="true">Type custom setup instructions, dimensions, color themes, flower requirements, lighting setups, or special details here...</div>
+      </div>
+    `;
+
+    activePage.insertAdjacentHTML('beforeend', descHtml);
+    this.makePdfElementsDraggable();
+    window.App.showToast('Added Draggable Description Card!', 'success');
   },
 
-  compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.75) {
+  addTotalEntryCardToCanvas() {
+    const pages = document.querySelectorAll('.wysiwyg-a4-page');
+    if (pages.length === 0) return;
+    const activePage = pages[pages.length - 1];
+
+    const helper = activePage.querySelector('.helper-dropzone');
+    if (helper) helper.remove();
+
+    const row = document.querySelector(`.compact-checkpoint-item[data-id="${this.activeModalItemId}"]`);
+    const price = row ? row.querySelector('.chk-price-input').value : 0;
+
+    const priceHtml = `
+      <div class="draggable-pdf-element sc-price-card" style="top: 420px; left: 45px; width: 280px; height: 75px; background: #ffffff; border: 1.5px solid #0056b3; border-radius: 6px; padding: 10px;">
+        <span class="drag-handle-badge">✥ Drag Total Entry</span>
+        <span class="corner-resize-handle">⤢</span>
+        <div style="font-size: 10px; font-weight: 700; color: #3c3c3c;">ITEM TOTAL ENTRY:</div>
+        <div class="sc-price-val" style="font-size: 16px; font-weight: 800; color: #0088ff;" contenteditable="true">Rs. ${Number(price).toLocaleString('en-IN')}</div>
+      </div>
+    `;
+
+    activePage.insertAdjacentHTML('beforeend', priceHtml);
+    this.makePdfElementsDraggable();
+    window.App.showToast('Added Draggable Total Entry Price Card!', 'success');
+  },
+
+  async handleCanvasDirectImageUpload(files) {
+    const fileList = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (fileList.length === 0) return;
+
+    window.App.showToast(`Processing ${fileList.length} image(s)...`, 'info');
+
+    for (let i = 0; i < fileList.length; i++) {
+      let pages = document.querySelectorAll('.wysiwyg-a4-page');
+      if (pages.length === 0) {
+        this.addBlankCanvasPage();
+        pages = document.querySelectorAll('.wysiwyg-a4-page');
+      }
+      let activePage = pages[pages.length - 1];
+
+      // Remove helper dropzone if present
+      const helper = activePage.querySelector('.helper-dropzone');
+      if (helper) helper.remove();
+
+      // Check max 4 photos per page rule!
+      const currentPhotoCount = activePage.querySelectorAll('.sc-photo-card').length;
+      if (currentPhotoCount >= 4) {
+        window.App.showToast('Page full (4 images max). Creating new page...', 'info');
+        this.addBlankCanvasPage();
+        pages = document.querySelectorAll('.wysiwyg-a4-page');
+        activePage = pages[pages.length - 1];
+        const h = activePage.querySelector('.helper-dropzone');
+        if (h) h.remove();
+      }
+
+      const file = fileList[i];
+      const dataUrl = await this.compressImage(file);
+      if (dataUrl) {
+        const photoIdx = activePage.querySelectorAll('.sc-photo-card').length;
+        const topY = 120 + (photoIdx * 225);
+        const imgHtml = `
+          <div class="draggable-pdf-element sc-photo-card" style="top: ${topY}px; left: 405px; width: 344px; height: 215px; background: white; border: 1.5px solid #0056b3; border-radius: 6px; overflow: hidden; padding: 3px;">
+            <span class="drag-handle-badge">✥ Drag Image</span>
+            <span class="corner-resize-handle">⤢</span>
+            <button type="button" class="photo-delete-btn" onclick="this.parentElement.remove()" title="Delete Wrong Image">&times;</button>
+            <img src="${dataUrl}" alt="Showcase Photo" style="width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; -webkit-user-drag:none;" draggable="false">
+          </div>
+        `;
+        activePage.insertAdjacentHTML('beforeend', imgHtml);
+      }
+    }
+
+    this.makePdfElementsDraggable();
+    const fileInput = document.getElementById('canvasDirectFileInput');
+    if (fileInput) fileInput.value = '';
+
+    window.App.showToast('Uploaded image added to page!', 'success');
+  },
+
+  saveSingleShowcasePage() {
+    const itemId = this.activeModalItemId;
+    if (!itemId) return;
+
+    const viewport = document.getElementById('pdfEditorViewport');
+    if (!viewport) return;
+
+    const pages = viewport.querySelectorAll('.wysiwyg-a4-page');
+    if (pages.length === 0) return;
+
+    let fullDescription = '';
+    let itemPrice = 0;
+    const photos = [];
+    const pagesData = [];
+
+    // Extract contents & photos across all showcase pages for this item
+    pages.forEach((page, pIdx) => {
+      let pageDesc = '';
+      const pagePhotos = [];
+
+      // Descriptions
+      page.querySelectorAll('.sc-desc-content').forEach(d => {
+        const text = d.innerText.trim();
+        pageDesc += text + '\n';
+        fullDescription += text + '\n';
+      });
+
+      // Price
+      const pVal = page.querySelector('.sc-price-val');
+      if (pVal) {
+        const num = parseFloat(pVal.innerText.replace(/\D/g, '')) || 0;
+        if (num > 0) itemPrice = num;
+      }
+
+      // Photos
+      page.querySelectorAll('.sc-photo-card img, img').forEach(img => {
+        if (img.src && img.src.startsWith('data:image/')) {
+          const photoObj = { id: 'photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4), src: img.src };
+          photos.push(photoObj);
+          pagePhotos.push(photoObj);
+        }
+      });
+
+      const titleEl = page.querySelector('.draggable-pdf-element span, .draggable-pdf-element');
+      const title = titleEl ? titleEl.innerText.replace('✥ Drag Header', '').replace('⤢', '').trim() : `SHOWCASE PAGE #${pIdx + 1}`;
+
+      pagesData.push({
+        pageNum: pIdx + 1,
+        title,
+        description: pageDesc.trim(),
+        photos: pagePhotos
+      });
+    });
+
+    const titleEl = document.getElementById('scHeaderTitle') || pages[0].querySelector('.draggable-pdf-element');
+    const title = titleEl ? titleEl.innerText.replace('✥ Drag Header', '').replace('⤢', '').trim() : 'SHOWCASE DETAILS';
+
+    // Store in checkpointShowcases with full multi-page support
+    this.checkpointShowcases[itemId] = {
+      title,
+      description: fullDescription.trim(),
+      unitPrice: itemPrice,
+      photos,
+      pages: pagesData,
+      savedCanvasHtml: viewport.innerHTML
+    };
+
+    const row = document.querySelector(`.compact-checkpoint-item[data-id="${itemId}"]`);
+    if (row) {
+      const priceInput = row.querySelector('.chk-price-input');
+      if (itemPrice > 0 && priceInput) priceInput.value = itemPrice;
+      const checkbox = row.querySelector('.item-checkbox');
+      if (checkbox) checkbox.checked = true;
+      row.classList.add('selected');
+    }
+
+    const btn = document.getElementById(`btn_${itemId}`) || (row ? row.querySelector('.chk-detail-btn') : null);
+    if (btn) {
+      if (fullDescription || photos.length > 0 || pagesData.length > 0) {
+        btn.classList.add('has-data');
+      }
+    }
+
+    this.recalculateTotals();
+    this.closeInteractivePdfEditor();
+    window.App.showToast(`Saved ${pagesData.length} showcase page(s)! Included after Total Box page.`, 'success');
+  },
+
+  addBlankCanvasPage() {
+    const viewport = document.getElementById('pdfEditorViewport');
+    if (!viewport) return;
+
+    const pageCount = viewport.querySelectorAll('.wysiwyg-a4-page').length + 1;
+    const pageId = `wysiwyg-page-${pageCount}`;
+
+    const pageHtml = `
+      <div class="wysiwyg-a4-page" id="${pageId}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
+        <button type="button" class="page-delete-btn" onclick="this.parentElement.remove()" title="Delete Page">&times;</button>
+
+        <!-- Editable Title Header -->
+        <div class="draggable-pdf-element" style="top: 45px; left: 45px; width: 704px; height: 42px; background: #0056b3; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 15px; font-weight: 800;" contenteditable="true">
+          <span class="drag-handle-badge">✥ Drag Header</span>
+          <span class="corner-resize-handle">⤢</span>
+          SHOWCASE PAGE #${pageCount}
+        </div>
+
+        <div class="draggable-pdf-element helper-dropzone" style="top: 120px; left: 45px; width: 704px; height: 180px; background: #f8fafe; border: 2px dashed #0088ff; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
+          <span class="drag-handle-badge">✥ Drag Notice</span>
+          <span class="corner-resize-handle">⤢</span>
+          <div style="font-size: 14px; font-weight: 800; color: #0056b3; margin-bottom: 6px;">Add Content Cards To Page #${pageCount}</div>
+          <div style="font-size: 12px; color: #475569;">Click <strong>📝 Add Description</strong>, <strong>🏷️ Add Total Entry</strong>, or <strong>📷 Upload Image</strong> on top toolbar! (Max 4 images per page)</div>
+        </div>
+
+      </div>
+    `;
+
+    viewport.insertAdjacentHTML('beforeend', pageHtml);
+    this.makePdfElementsDraggable();
+    window.App.showToast(`Added Showcase Page #${pageCount}!`, 'success');
+  },
+
+  compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -244,95 +532,36 @@ window.BillTab = {
     });
   },
 
-  async handleModalPhotoUpload(files) {
-    const fileList = Array.from(files).filter(file => file.type.startsWith('image/'));
-    if (fileList.length === 0) return;
-
-    window.App.showToast(`Optimizing ${fileList.length} photo(s)...`, 'info');
-
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i];
-      const compressedDataUrl = await this.compressImage(file);
-      if (compressedDataUrl) {
-        this.modalUploadedPhotos.push({
-          id: 'photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-          src: compressedDataUrl
-        });
-      }
-    }
-
-    const fileInput = document.getElementById('modalFileInput');
-    if (fileInput) fileInput.value = '';
-
-    this.renderModalPhotos();
-  },
-
-  renderModalPhotos() {
-    const grid = document.getElementById('modalPhotoGrid');
-    if (!grid) return;
-
-    if (this.modalUploadedPhotos.length === 0) {
-      grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); font-size: 0.78rem;">No photos attached for this checkpoint yet.</div>`;
-      return;
-    }
-
-    grid.innerHTML = this.modalUploadedPhotos.map((photo, idx) => `
-      <div class="modal-photo-card">
-        <button type="button" class="modal-photo-remove" onclick="window.BillTab.removeModalPhoto('${photo.id}')">&times;</button>
-        <img src="${photo.src}" alt="Checkpoint Photo ${idx + 1}">
+  // ==========================================
+  // EDITABLE LETTERHEAD MODAL & EXTRA COMPANY INFO
+  // ==========================================
+  addExtraCompanyInfoRow(val = '') {
+    const container = document.getElementById('extraCompanyInfoContainer');
+    if (!container) return;
+    const rowId = 'lh_extra_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    const html = `
+      <div class="lh-extra-row" id="${rowId}" style="display: flex; align-items: center; gap: 6px;">
+        <input type="text" class="form-input lh-extra-input" value="${val}" placeholder="e.g. GST No: 27AAAAA0000A1Z5 or Email / Bank info..." style="flex: 1;">
+        <button type="button" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid #ef4444; border-radius: 4px; padding: 4px 8px; font-weight: 800; cursor: pointer;" onclick="document.getElementById('${rowId}').remove()" title="Delete Info Line">&times;</button>
       </div>
-    `).join('');
+    `;
+    container.insertAdjacentHTML('beforeend', html);
   },
 
-  removeModalPhoto(id) {
-    this.modalUploadedPhotos = this.modalUploadedPhotos.filter(p => p.id !== id);
-    this.renderModalPhotos();
-  },
+  openLetterheadModal() {
+    document.getElementById('lhPhoneText').value = this.letterheadSettings.phoneText || '';
+    document.getElementById('lhAddressText').value = this.letterheadSettings.addressText || '';
+    document.getElementById('lhTaglineText').value = this.letterheadSettings.taglineText || '';
+    document.getElementById('lhHeaderTitle').value = this.letterheadSettings.headerTitle || '';
 
-  saveCheckpointModalData() {
-    const itemId = this.activeModalItemId;
-    if (!itemId) return;
-
-    const title = document.getElementById('modalShowcaseTitle').value.trim();
-    const description = document.getElementById('modalShowcaseDesc').value.trim();
-    const price = parseFloat(document.getElementById('modalShowcasePrice').value) || 0;
-
-    this.checkpointShowcases[itemId] = {
-      title,
-      description,
-      unitPrice: price,
-      photos: [...this.modalUploadedPhotos]
-    };
-
-    const row = document.querySelector(`.compact-checkpoint-item[data-id="${itemId}"]`);
-    if (row) {
-      row.querySelector('.chk-price-input').value = price;
-      row.querySelector('.item-checkbox').checked = true;
-      row.classList.add('selected');
-    }
-
-    const btn = document.getElementById(`btn_${itemId}`) || (row ? row.querySelector('.chk-detail-btn') : null);
-    if (btn) {
-      if (description || this.modalUploadedPhotos.length > 0) {
-        btn.classList.add('has-data');
-      } else {
-        btn.classList.remove('has-data');
+    const container = document.getElementById('extraCompanyInfoContainer');
+    if (container) {
+      container.innerHTML = '';
+      const lines = this.letterheadSettings.extraInfoLines || [];
+      if (lines.length > 0) {
+        lines.forEach(l => this.addExtraCompanyInfoRow(l));
       }
     }
-
-    this.recalculateTotals();
-    this.closeCheckpointModal();
-    window.App.showToast('Showcase details saved!', 'success');
-  },
-
-  // ==========================================
-  // EDITABLE LETTERHEAD MODAL
-  // ==========================================
-  openLetterheadModal() {
-    document.getElementById('lhPhoneText').value = this.letterheadSettings.phoneText;
-    document.getElementById('lhAddressText').value = this.letterheadSettings.addressText;
-    document.getElementById('lhTaglineText').value = this.letterheadSettings.taglineText;
-    document.getElementById('lhHeaderTitle').value = this.letterheadSettings.headerTitle;
 
     document.getElementById('letterheadModal').classList.add('active');
   },
@@ -342,31 +571,52 @@ window.BillTab = {
   },
 
   saveLetterheadSettings() {
+    const extraInfoLines = [];
+    document.querySelectorAll('.lh-extra-input').forEach(inp => {
+      const txt = inp.value.trim();
+      if (txt) extraInfoLines.push(txt);
+    });
+
     this.letterheadSettings = {
       phoneText: document.getElementById('lhPhoneText').value.trim(),
       addressText: document.getElementById('lhAddressText').value.trim(),
       taglineText: document.getElementById('lhTaglineText').value.trim(),
-      headerTitle: document.getElementById('lhHeaderTitle').value.trim()
+      headerTitle: document.getElementById('lhHeaderTitle').value.trim(),
+      extraInfoLines
     };
 
     this.closeLetterheadModal();
-    window.App.showToast('Letterhead settings updated!', 'success');
+    window.App.showToast('Letterhead & extra company info updated!', 'success');
   },
 
   // ==========================================================================
-  // FULLSCREEN WYSIWYG PIXEL-PERFECT INTERACTIVE LIVE PDF CANVAS EDITOR
+  // FULL DOCUMENT WYSIWYG PIXEL-PERFECT INTERACTIVE LIVE PDF CANVAS EDITOR
   // ==========================================================================
   openInteractivePdfEditor() {
     const data = this.getQuotationData();
     if (!data) return;
 
     window.App.showToast('Building pixel-perfect PDF canvas editor...', 'info');
+
+    // Show export buttons & blank page button for full document mode
+    if (document.getElementById('editorToolbarTitle')) {
+      document.getElementById('editorToolbarTitle').textContent = '🎨 INTERACTIVE PDF CANVAS EDITOR';
+    }
+    if (document.getElementById('btnSaveSinglePage')) document.getElementById('btnSaveSinglePage').style.display = 'none';
+    if (document.getElementById('btnAddDescription')) document.getElementById('btnAddDescription').style.display = 'inline-flex';
+    if (document.getElementById('btnAddTotalEntry')) document.getElementById('btnAddTotalEntry').style.display = 'inline-flex';
+    if (document.getElementById('btnUploadImage')) document.getElementById('btnUploadImage').style.display = 'inline-flex';
+    if (document.getElementById('btnExportPdf')) document.getElementById('btnExportPdf').style.display = 'inline-flex';
+    if (document.getElementById('btnShareWhatsApp')) document.getElementById('btnShareWhatsApp').style.display = 'inline-flex';
+    if (document.getElementById('btnAddBlankPage')) document.getElementById('btnAddBlankPage').style.display = 'inline-flex';
+
     this.renderInteractivePdfCanvas(data);
     document.getElementById('pdfVisualEditorOverlay').classList.add('active');
   },
 
   closeInteractivePdfEditor() {
     document.getElementById('pdfVisualEditorOverlay').classList.remove('active');
+    this.activeModalItemId = null;
   },
 
   renderInteractivePdfCanvas(customData) {
@@ -383,18 +633,15 @@ window.BillTab = {
 
     const selectedItems = (data.items || []).filter(i => i.selected);
 
-    // MM to PX Scale Ratio for A4 Page (210mm = 794px, 297mm = 1123px => 1mm = 3.78095px)
     const mmToPx = 3.78095;
-
     let html = '';
 
     // ----------------------------------------------------
-    // PAGE 1: COVER PAGE (Pixel-perfect A4 794px x 1123px with Cover Graphic)
+    // PAGE 1: COVER PAGE
     // ----------------------------------------------------
     html += `
       <div class="wysiwyg-a4-page" id="wysiwyg-page-1" style="background: url('${assets.coverPage || 'assets/cover_page.jpg'}') no-repeat center center / 100% 100%;">
         
-        <!-- Editable & Draggable Client Tag Banner -->
         <div class="draggable-pdf-element" style="bottom: 90px; left: 50px; width: 694px; height: 75px; background: rgba(11,15,25,0.92); border: 2px solid #00d2ff; padding: 14px; border-radius: 8px; text-align: center; color: white;">
           <span class="drag-handle-badge">✥ Drag</span>
           <span class="corner-resize-handle">⤢</span>
@@ -405,7 +652,7 @@ window.BillTab = {
     `;
 
     // ----------------------------------------------------
-    // UNIFIED PAGINATION ALGORITHM (100% PARITY WITH pdfGenerator.js)
+    // UNIFIED PAGINATION ALGORITHM
     // ----------------------------------------------------
     let currentPageIndex = 2;
 
@@ -419,19 +666,15 @@ window.BillTab = {
     const summaryBoxH_mm = hasDiscount ? 36 : 28;
     const noteBoxH_mm = 11;
 
-    let currentY_mm = 48; // Starts after header at 48mm for Page 2
+    let currentY_mm = 48;
     let pageMaxY_mm = 250;
 
     let currentTableRowsHtml = '';
 
-    // Helper to start a page container
-    // Page 2 ONLY gets the letterhead graphic background & printed header overlay (matching pdfGenerator.js)!
-    // Page 3+ are rendered as NORMAL plain white pages (#ffffff) with no letterhead template graphic.
     const startBillingPageHtml = (pageNum, isPage2) => `
       <div class="wysiwyg-a4-page" id="wysiwyg-page-${pageNum}" style="font-family: Inter, sans-serif; background: ${isPage2 ? `url('${assets.letterhead || 'assets/letterhead_template.jpg'}') no-repeat center center / 100% 100%` : '#ffffff'};">
         
         ${isPage2 ? `
-        <!-- Editable Letterhead Contact Header Overlay (Page 2 Only) -->
         <div class="draggable-pdf-element" style="top: 40px; right: 45px; width: 340px; height: 50px; text-align: right; font-size: 11px; color: #334155;">
           <span class="drag-handle-badge">✥ Drag</span>
           <span class="corner-resize-handle">⤢</span>
@@ -439,7 +682,6 @@ window.BillTab = {
           <div contenteditable="true">${data.letterhead?.addressText || '17 East, Ayodhya Nagar, Majrewadi, Solapur 413003'}</div>
         </div>
 
-        <!-- Client & Event Info Box (Page 2 Only, yPos = 48mm) -->
         <div class="draggable-pdf-element" style="top: ${Math.round(48 * mmToPx)}px; left: 45px; width: 704px; height: ${Math.round(42 * mmToPx)}px; background: #f8fafe; border: 1.5px solid #0056b3; border-radius: 6px; padding: 14px;">
           <span class="drag-handle-badge">✥ Drag Client Box</span>
           <span class="corner-resize-handle">⤢</span>
@@ -460,18 +702,14 @@ window.BillTab = {
         ` : ''}
     `;
 
-    // Start Page 2 (Letterhead Page)
     let pageContent = startBillingPageHtml(currentPageIndex, true);
-    currentY_mm = 96; // Table starts at 96mm on Page 2 after Client Box (48 + 48)
-
+    currentY_mm = 96;
     let tableStartY_mm = currentY_mm;
 
     selectedItems.forEach((item, idx) => {
       const rowH_mm = 7.5;
 
-      // Check if row overflows page
       if (currentY_mm + rowH_mm > pageMaxY_mm) {
-        // Close table on current page
         pageContent += `
           <div class="draggable-pdf-element" style="top: ${Math.round(tableStartY_mm * mmToPx)}px; left: 45px; width: 704px;">
             <span class="drag-handle-badge">✥ Drag Table</span>
@@ -488,11 +726,10 @@ window.BillTab = {
               <tbody>${currentTableRowsHtml}</tbody>
             </table>
           </div>
-        </div>`; // Close page container
+        </div>`;
 
         html += pageContent;
 
-        // Advance to Page 3+ (Normal Plain White Page)
         currentPageIndex++;
         pageMaxY_mm = 270;
         currentY_mm = 16;
@@ -500,7 +737,7 @@ window.BillTab = {
         currentTableRowsHtml = '';
 
         pageContent = startBillingPageHtml(currentPageIndex, false);
-        currentY_mm += 8; // Header height
+        currentY_mm += 8;
       }
 
       currentTableRowsHtml += `
@@ -515,7 +752,6 @@ window.BillTab = {
       currentY_mm += rowH_mm;
     });
 
-    // Render remaining table on current page
     if (currentTableRowsHtml) {
       pageContent += `
         <div class="draggable-pdf-element" style="top: ${Math.round(tableStartY_mm * mmToPx)}px; left: 45px; width: 704px;">
@@ -535,9 +771,8 @@ window.BillTab = {
         </div>`;
     }
 
-    // CHECK IF FINANCIAL SUMMARY TOTAL BOX OVERFLOWS CURRENT PAGE
     if (currentY_mm + summaryBoxH_mm + 4 > pageMaxY_mm) {
-      pageContent += `</div>`; // Close current page
+      pageContent += `</div>`;
       html += pageContent;
 
       currentPageIndex++;
@@ -546,7 +781,7 @@ window.BillTab = {
       pageContent = startBillingPageHtml(currentPageIndex, false);
     }
 
-    currentY_mm += 4; // Margin top for total box
+    currentY_mm += 4;
     const summaryBoxY_px = Math.round(currentY_mm * mmToPx);
 
     pageContent += `
@@ -564,9 +799,8 @@ window.BillTab = {
 
     currentY_mm += summaryBoxH_mm + 6;
 
-    // CHECK IF IMPORTANT NOTE BOX OVERFLOWS CURRENT PAGE
     if (currentY_mm + noteBoxH_mm > pageMaxY_mm) {
-      pageContent += `</div>`; // Close current page
+      pageContent += `</div>`;
       html += pageContent;
 
       currentPageIndex++;
@@ -584,26 +818,25 @@ window.BillTab = {
         <span class="corner-resize-handle">⤢</span>
         IMPORTANT NOTE: 80% PAYMENT MUST BE PAID 15 DAYS BEFORE OF EVENT.
       </div>
-    </div>`; // Close final billing letterhead page container
+    </div>`;
 
     html += pageContent;
 
     // ----------------------------------------------------
-    // DEDICATED CHECKPOINT SHOWCASE PAGES (Page 3+ Normal Plain White Pages)
+    // DEDICATED SHOWCASE PAGES (Page 3+ Saved After Total Box)
     // ----------------------------------------------------
     const allShowcases = [];
     selectedItems.forEach(item => {
-      if (item.showcase && (item.showcase.description || (item.showcase.photos && item.showcase.photos.length > 0))) {
-        allShowcases.push({ name: item.name, showcase: item.showcase, unitPrice: item.unitPrice });
+      if (item.showcase && (item.showcase.description || (item.showcase.photos && item.showcase.photos.length > 0) || item.showcase.savedCanvasHtml)) {
+        allShowcases.push({ id: item.id, name: item.name, showcase: item.showcase, unitPrice: item.unitPrice });
       }
     });
 
-    // Also include function showcases from checkpointShowcases (keys starting with fn_)
     Object.keys(this.checkpointShowcases).forEach(key => {
       if (key.startsWith('fn_')) {
         const sc = this.checkpointShowcases[key];
-        if (sc && (sc.description || (sc.photos && sc.photos.length > 0))) {
-          allShowcases.push({ name: sc.title || key.replace('fn_', '') + ' Function', showcase: sc, unitPrice: sc.unitPrice || 0 });
+        if (sc && (sc.description || (sc.photos && sc.photos.length > 0) || sc.savedCanvasHtml)) {
+          allShowcases.push({ id: key, name: sc.title || key.replace('fn_', '') + ' Function', showcase: sc, unitPrice: sc.unitPrice || 0 });
         }
       }
     });
@@ -611,61 +844,82 @@ window.BillTab = {
     allShowcases.forEach((item, sIdx) => {
       currentPageIndex++;
       const sc = item.showcase;
-      const pageId = `wysiwyg-page-${currentPageIndex}`;
 
-      const photoCardsHtml = (sc.photos || []).map((p, pIdx) => `
-        <div class="draggable-pdf-element" style="position: absolute; top: ${pIdx * 230}px; left: 0; width: 380px; height: 215px; background: white; border: 1.5px solid #d2e1f5; border-radius: 6px; overflow: hidden; padding: 4px;">
-          <span class="drag-handle-badge">✥ Drag Photo ${pIdx + 1}</span>
-          <span class="corner-resize-handle">⤢</span>
-          <img src="${p.src}" alt="Showcase Photo">
-        </div>
-      `).join('');
-
-      html += `
-        <div class="wysiwyg-a4-page" id="${pageId}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff;">
-          
-          <!-- Top Editable Header Bar -->
-          <div class="draggable-pdf-element" style="top: 45px; left: 45px; width: 704px; height: 42px; background: #0056b3; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 15px; font-weight: 800;" contenteditable="true">
-            <span class="drag-handle-badge">✥ Drag Header</span>
+      if (sc.savedCanvasHtml) {
+        html += sc.savedCanvasHtml;
+      } else {
+        const pageId = `wysiwyg-page-${currentPageIndex}`;
+        const photoCardsHtml = (sc.photos || []).map((p, pIdx) => `
+          <div class="draggable-pdf-element sc-photo-card" style="position: absolute; top: ${pIdx * 230}px; left: 0; width: 380px; height: 215px; background: white; border: 1.5px solid #d2e1f5; border-radius: 6px; overflow: hidden; padding: 4px;">
+            <span class="drag-handle-badge">✥ Drag Photo ${pIdx + 1}</span>
             <span class="corner-resize-handle">⤢</span>
-            ${(sc.title || item.name).toUpperCase()}
+            <button type="button" class="photo-delete-btn" onclick="this.parentElement.remove()" title="Delete Wrong Image">&times;</button>
+            <img src="${p.src}" alt="Showcase Photo" style="width:100%; height:100%; object-fit:cover; display:block; pointer-events:none; -webkit-user-drag:none;" draggable="false">
           </div>
+        `).join('');
 
-          <!-- Left Side: Draggable & Resizable Description Specifications Box -->
-          <div class="draggable-pdf-element" style="top: 105px; left: 45px; width: 300px; height: 930px; background: #f8fafe; border: 1.5px solid #d2e1f5; border-radius: 6px; padding: 16px;" contenteditable="true">
-            <span class="drag-handle-badge">✥ Drag Description</span>
-            <span class="corner-resize-handle">⤢</span>
-            <div style="font-size: 13px; font-weight: 800; color: #0056b3; margin-bottom: 10px;">SETUP SPECIFICATIONS:</div>
-            <div style="font-size: 12px; color: #282828; line-height: 1.6; margin-bottom: 18px;">${sc.description || 'Enter custom setup instructions...'}</div>
-            <div style="background: white; border: 1.5px solid #0056b3; padding: 10px; border-radius: 4px;">
-              <div style="font-size: 10px; font-weight: 700; color: #3c3c3c;">ITEM TOTAL ENTRY:</div>
-              <div style="font-size: 15px; font-weight: 800; color: #0088ff;">Rs. ${(sc.unitPrice || item.unitPrice).toLocaleString('en-IN')}</div>
+        html += `
+          <div class="wysiwyg-a4-page" id="${pageId}" data-showcase-id="${item.id}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff;">
+            <button type="button" class="page-delete-btn" onclick="this.parentElement.remove()" title="Delete Page">&times;</button>
+            
+            <div class="draggable-pdf-element" style="top: 45px; left: 45px; width: 704px; height: 42px; background: #0056b3; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 15px; font-weight: 800;" contenteditable="true">
+              <span class="drag-handle-badge">✥ Drag Header</span>
+              <span class="corner-resize-handle">⤢</span>
+              ${(sc.title || item.name).toUpperCase()}
             </div>
-          </div>
 
-          <!-- Right Side: Draggable & Resizable Photos Area -->
-          <div style="position: absolute; top: 105px; left: 365px; width: 384px; height: 930px;">
-            ${photoCardsHtml || `<div style="text-align: center; color: #787878; font-size: 13px; padding-top: 100px;">No photo attachments for this setup.</div>`}
-          </div>
+            <div class="draggable-pdf-element sc-desc-card" style="top: 105px; left: 45px; width: 300px; height: 930px; background: #f8fafe; border: 1.5px solid #d2e1f5; border-radius: 6px; padding: 16px;">
+              <span class="drag-handle-badge">✥ Drag Description</span>
+              <span class="corner-resize-handle">⤢</span>
+              <div style="font-size: 13px; font-weight: 800; color: #0056b3; margin-bottom: 10px;">SETUP SPECIFICATIONS:</div>
+              <div class="sc-desc-content" style="font-size: 12px; color: #282828; line-height: 1.6; margin-bottom: 18px;" contenteditable="true">${sc.description || 'Enter custom setup instructions...'}</div>
+              <div style="background: white; border: 1.5px solid #0056b3; padding: 10px; border-radius: 4px;">
+                <div style="font-size: 10px; font-weight: 700; color: #3c3c3c;">ITEM TOTAL ENTRY:</div>
+                <div class="sc-price-val" style="font-size: 15px; font-weight: 800; color: #0088ff;" contenteditable="true">Rs. ${(sc.unitPrice || item.unitPrice).toLocaleString('en-IN')}</div>
+              </div>
+            </div>
 
-        </div>
-      `;
+            <div style="position: absolute; top: 105px; left: 365px; width: 384px; height: 930px;">
+              ${photoCardsHtml || `<div style="text-align: center; color: #787878; font-size: 13px; padding-top: 100px;">No photo attachments for this setup.</div>`}
+            </div>
+
+          </div>
+        `;
+      }
     });
 
     viewport.innerHTML = html;
     this.makePdfElementsDraggable();
   },
 
-  // ROBUST DRAG & RESIZE ENGINE
   makePdfElementsDraggable() {
     const draggables = document.querySelectorAll('.draggable-pdf-element');
 
     draggables.forEach(el => {
-      const dragBadge = el.querySelector('.drag-handle-badge');
       const resizeHandle = el.querySelector('.corner-resize-handle');
 
-      // 1. DRAG MOVING LOGIC
+      // Prevent native image dragging interference
+      const imgs = el.querySelectorAll('img');
+      imgs.forEach(img => {
+        img.setAttribute('draggable', 'false');
+        img.style.pointerEvents = 'none';
+        img.style.userSelect = 'none';
+        img.style.webkitUserDrag = 'none';
+        img.addEventListener('dragstart', e => e.preventDefault());
+      });
+
       const initDrag = (e) => {
+        if (e.target === resizeHandle || (e.target.classList && e.target.classList.contains('corner-resize-handle'))) {
+          return;
+        }
+
+        if (e.target.isContentEditable && e.target !== el && !e.target.classList.contains('drag-handle-badge')) {
+          return;
+        }
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          return;
+        }
+
         e.preventDefault();
         e.stopPropagation();
 
@@ -706,17 +960,9 @@ window.BillTab = {
         document.addEventListener('touchend', onStop);
       };
 
-      if (dragBadge) {
-        dragBadge.addEventListener('mousedown', initDrag);
-        dragBadge.addEventListener('touchstart', initDrag);
-      } else {
-        el.addEventListener('mousedown', (e) => {
-          if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target === resizeHandle) return;
-          initDrag(e);
-        });
-      }
+      el.addEventListener('mousedown', initDrag);
+      el.addEventListener('touchstart', initDrag, { passive: false });
 
-      // 2. CORNER RESIZING LOGIC
       if (resizeHandle) {
         const initResize = (e) => {
           e.preventDefault();
@@ -767,7 +1013,7 @@ window.BillTab = {
 
     window.App.showToast('Rendering pixel-perfect PDF from visual canvas...', 'info');
 
-    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle').forEach(b => b.style.display = 'none');
+    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = 'none');
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -779,6 +1025,7 @@ window.BillTab = {
       const canvas = await html2canvas(pageEl, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
@@ -788,7 +1035,7 @@ window.BillTab = {
       doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
     }
 
-    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle').forEach(b => b.style.display = '');
+    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = '');
 
     const data = this.getQuotationData();
     const clientName = [data.clientDetails.groomName, data.clientDetails.brideName].filter(Boolean).join('_') || 'Client';
@@ -806,7 +1053,7 @@ window.BillTab = {
 
     window.App.showToast('Generating edited PDF file for WhatsApp sharing...', 'info');
 
-    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle').forEach(b => b.style.display = 'none');
+    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = 'none');
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -818,6 +1065,7 @@ window.BillTab = {
       const canvas = await html2canvas(pageEl, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
@@ -827,7 +1075,7 @@ window.BillTab = {
       doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
     }
 
-    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle').forEach(b => b.style.display = '');
+    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = '');
 
     const data = this.getQuotationData();
     const clientName = [data.clientDetails.groomName, data.clientDetails.brideName].filter(Boolean).join('_') || 'Client';
@@ -1069,7 +1317,7 @@ window.BillTab = {
     Object.keys(this.checkpointShowcases).forEach(key => {
       const sc = this.checkpointShowcases[key];
       const btn = document.getElementById(`btn_${key}`) || document.querySelector(`.compact-checkpoint-item[data-id="${key}"] .chk-detail-btn`);
-      if (btn && sc && (sc.description || (sc.photos && sc.photos.length > 0))) {
+      if (btn && sc && (sc.description || (sc.photos && sc.photos.length > 0) || sc.savedCanvasHtml)) {
         btn.classList.add('has-data');
       }
     });
@@ -1089,29 +1337,9 @@ window.BillTab = {
   },
 
   bindEvents() {
-    const modalDropzone = document.getElementById('modalDropzone');
-    const modalFileInput = document.getElementById('modalFileInput');
-
-    if (modalDropzone && modalFileInput) {
-      modalDropzone.addEventListener('click', () => modalFileInput.click());
-      modalFileInput.addEventListener('change', (e) => this.handleModalPhotoUpload(e.target.files));
-
-      modalDropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        modalDropzone.style.borderColor = 'var(--accent-cyan)';
-      });
-
-      modalDropzone.addEventListener('dragleave', () => {
-        modalDropzone.style.borderColor = 'var(--border-color)';
-      });
-
-      modalDropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        modalDropzone.style.borderColor = 'var(--border-color)';
-        if (e.dataTransfer.files) {
-          this.handleModalPhotoUpload(e.dataTransfer.files);
-        }
-      });
+    const fileInput = document.getElementById('canvasDirectFileInput');
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => this.handleCanvasDirectImageUpload(e.target.files));
     }
   }
 };

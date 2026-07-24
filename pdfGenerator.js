@@ -1,7 +1,7 @@
 // PDF Generator for White Angel Events
 // Page 1: Cover Page (cover_page.jpg)
 // Page 2: Quotation Letterhead (letterhead_template.jpg) ONLY for Page 2 with dynamic Header/Footer settings
-// Page 3+: Dedicated Checkpoint Showcase Pages (Title top, Description left, Photos right) or plain overflow pages
+// Page 3+: Dedicated Checkpoint Showcase Pages (Title top, Description left, Photos right) or custom saved visual canvas pages
 
 window.PdfGenerator = {
   async generatePdf(quotationData) {
@@ -15,7 +15,6 @@ window.PdfGenerator = {
     const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
     const pageHeight = doc.internal.pageSize.getHeight(); // 297mm
 
-    // Helper to load base64 or url image as HTMLImageElement
     const loadImage = (src) => new Promise((resolve) => {
       if (!src) return resolve(null);
       const img = new Image();
@@ -59,7 +58,6 @@ window.PdfGenerator = {
       doc.text("WHITE ANGEL EVENTS", pageWidth / 2, 90, { align: 'center' });
     }
 
-    // Overlay tag for Client Name at bottom of Cover Page
     const groom = quotationData.clientDetails.groomName || '';
     const bride = quotationData.clientDetails.brideName || '';
     const clientTitle = [groom, bride].filter(Boolean).join(' & ') || 'VALUED CLIENT';
@@ -95,18 +93,31 @@ window.PdfGenerator = {
       doc.text("WHITE ANGEL EVENTS", 15, 16);
     }
 
-    // Overlay Dynamic Letterhead Text
+    let extraHeaderY = 12;
     if (letterhead.phoneText) {
       doc.setFontSize(7.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 86, 179);
-      doc.text(`Contact: ${letterhead.phoneText}`, pageWidth - 14, 12, { align: 'right' });
+      doc.text(`Contact: ${letterhead.phoneText}`, pageWidth - 14, extraHeaderY, { align: 'right' });
+      extraHeaderY += 4.5;
     }
     if (letterhead.addressText) {
       doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(60, 60, 60);
-      doc.text(`${letterhead.addressText}`, pageWidth - 14, 16.5, { align: 'right' });
+      doc.text(`${letterhead.addressText}`, pageWidth - 14, extraHeaderY, { align: 'right' });
+      extraHeaderY += 4;
+    }
+    if (letterhead.extraInfoLines && Array.isArray(letterhead.extraInfoLines)) {
+      letterhead.extraInfoLines.forEach(infoText => {
+        if (infoText && infoText.trim()) {
+          doc.setFontSize(6.8);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(0, 86, 179);
+          doc.text(infoText.trim(), pageWidth - 14, extraHeaderY, { align: 'right' });
+          extraHeaderY += 3.8;
+        }
+      });
     }
 
     let yPos = 48;
@@ -134,7 +145,6 @@ window.PdfGenerator = {
     doc.text(`Guest Count: ${quotationData.eventDetails.guestCount || '-'}`, col2X, yPos + 19);
     doc.text(`Event Time: ${quotationData.eventDetails.eventTime || '-'}`, col2X, yPos + 25);
 
-    // Event / Function Type(s) Highlight - WHITE BACKGROUND
     const functionsStr = (quotationData.selectedFunctions && quotationData.selectedFunctions.length > 0)
       ? quotationData.selectedFunctions.join(', ')
       : 'Wedding Event';
@@ -309,14 +319,14 @@ window.PdfGenerator = {
 
 
     // ----------------------------------------------------
-    // DEDICATED CHECKPOINT & FUNCTION SHOWCASE PAGES (Page 3+)
-    // Title at Top | Description & Price on Left | Photos on Right
+    // DEDICATED SHOWCASE PAGES (Page 3+ Saved After Total Box)
+    // PIXEL-PERFECT VISUAL CANVAS RENDERING ENGINE
     // ----------------------------------------------------
     const allShowcases = [];
 
     // 1. Service Items Showcase
     selectedItems.forEach(item => {
-      if (item.showcase && (item.showcase.description || (item.showcase.photos && item.showcase.photos.length > 0))) {
+      if (item.showcase && (item.showcase.description || (item.showcase.photos && item.showcase.photos.length > 0) || item.showcase.savedCanvasHtml || (item.showcase.pages && item.showcase.pages.length > 0))) {
         allShowcases.push({ name: item.name, showcase: item.showcase, unitPrice: item.unitPrice });
       }
     });
@@ -326,7 +336,7 @@ window.PdfGenerator = {
       Object.keys(quotationData.functionShowcases).forEach(key => {
         if (key.startsWith('fn_')) {
           const sc = quotationData.functionShowcases[key];
-          if (sc && (sc.description || (sc.photos && sc.photos.length > 0))) {
+          if (sc && (sc.description || (sc.photos && sc.photos.length > 0) || sc.savedCanvasHtml || (sc.pages && sc.pages.length > 0))) {
             allShowcases.push({ name: sc.title || key.replace('fn_', '') + ' Function', showcase: sc, unitPrice: sc.unitPrice || 0 });
           }
         }
@@ -336,89 +346,140 @@ window.PdfGenerator = {
     for (let sIdx = 0; sIdx < allShowcases.length; sIdx++) {
       const item = allShowcases[sIdx];
       const sc = item.showcase;
-      doc.addPage(); // Dedicated showcase page
 
-      // Top Title Bar
-      doc.setFillColor(0, 86, 179);
-      doc.rect(12, 12, pageWidth - 24, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10.5);
-      doc.setFont('helvetica', 'bold');
-      const pageTitle = (sc.title || item.name).toUpperCase();
-      doc.text(pageTitle, pageWidth / 2, 18.5, { align: 'center' });
+      if (sc && sc.savedCanvasHtml) {
+        // Render EXACT visual canvas pages saved by user!
+        const tempDiv = document.createElement('div');
+        tempDiv.style.cssText = 'position: fixed; left: -9999px; top: -9999px; width: 794px; z-index: -9999;';
+        tempDiv.innerHTML = sc.savedCanvasHtml;
+        document.body.appendChild(tempDiv);
 
-      // LEFT SIDE: Description & Pricing Specifications Box (X: 12mm to 92mm, W: 80mm)
-      const leftX = 12;
-      const leftW = 80;
-      const topY = 26;
+        // Hide badges, resize handles, and delete buttons before rendering canvas
+        tempDiv.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = 'none');
 
-      doc.setFillColor(248, 250, 254);
-      doc.setDrawColor(210, 225, 245);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(leftX, topY, leftW, pageHeight - 40, 2, 2, 'FD');
+        const pages = tempDiv.querySelectorAll('.wysiwyg-a4-page');
+        for (let pIdx = 0; pIdx < pages.length; pIdx++) {
+          const pageEl = pages[pIdx];
+          const canvas = await html2canvas(pageEl, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+          });
 
-      doc.setTextColor(0, 86, 179);
-      doc.setFontSize(9.5);
-      doc.setFont('helvetica', 'bold');
-      doc.text("SETUP SPECIFICATIONS:", leftX + 4, topY + 8);
+          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          doc.addPage();
+          doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+        }
 
-      let descY = topY + 14;
-
-      if (sc.description) {
-        doc.setFontSize(8.5);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(40, 40, 40);
-        const splitDesc = doc.splitTextToSize(sc.description, leftW - 8);
-        doc.text(splitDesc, leftX + 4, descY);
-        descY += (splitDesc.length * 4.5) + 6;
-      }
-
-      // Price Tag Box inside Description
-      doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(0, 86, 179);
-      doc.roundedRect(leftX + 4, descY, leftW - 8, 14, 2, 2, 'FD');
-
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(60, 60, 60);
-      doc.text("ITEM TOTAL ENTRY:", leftX + 8, descY + 5.5);
-      doc.setFontSize(10);
-      doc.setTextColor(0, 136, 255);
-      doc.text(formatRs(sc.unitPrice || item.unitPrice), leftX + 8, descY + 10.5);
-
-      // RIGHT SIDE: Photos Showcase Grid (X: 96mm to 198mm, W: 102mm)
-      const rightX = 96;
-      const rightW = 102;
-      const photos = sc.photos || [];
-
-      if (photos.length === 0) {
-        doc.setFillColor(248, 250, 254);
-        doc.setDrawColor(210, 225, 245);
-        doc.roundedRect(rightX, topY, rightW, pageHeight - 40, 2, 2, 'FD');
-        doc.setTextColor(120, 120, 120);
-        doc.setFontSize(9);
-        doc.text("No photo attachments for this setup.", rightX + rightW / 2, topY + 40, { align: 'center' });
+        document.body.removeChild(tempDiv);
       } else {
-        // Render 1 to 4 photos cleanly on the right side
-        const maxPhotos = Math.min(4, photos.length);
-        const pHeight = maxPhotos > 2 ? 60 : 120;
+        // Fallback standard layout renderer
+        let itemPages = sc.pages && sc.pages.length > 0 ? sc.pages : null;
+        const photos = sc.photos || [];
 
-        for (let pIdx = 0; pIdx < maxPhotos; pIdx++) {
-          const photo = photos[pIdx];
-          const pY = topY + (pIdx * (pHeight + 4));
+        if (!itemPages) {
+          const totalPagesCount = Math.max(1, Math.ceil(photos.length / 4));
+          itemPages = [];
+          for (let p = 0; p < totalPagesCount; p++) {
+            itemPages.push({
+              pageNum: p + 1,
+              title: sc.title || item.name,
+              description: p === 0 ? sc.description : '',
+              photos: photos.slice(p * 4, (p + 1) * 4)
+            });
+          }
+        }
+
+        for (let pIdx = 0; pIdx < itemPages.length; pIdx++) {
+          const pageData = itemPages[pIdx];
+          doc.addPage();
+
+          doc.setFillColor(0, 86, 179);
+          doc.rect(12, 12, pageWidth - 24, 10, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(10.5);
+          doc.setFont('helvetica', 'bold');
+          const pageTitle = (pageData.title || sc.title || item.name).toUpperCase();
+          doc.text(pageTitle, pageWidth / 2, 18.5, { align: 'center' });
+
+          const leftX = 12;
+          const leftW = 80;
+          const topY = 26;
 
           doc.setFillColor(248, 250, 254);
           doc.setDrawColor(210, 225, 245);
           doc.setLineWidth(0.4);
-          doc.roundedRect(rightX, pY, rightW, pHeight, 2, 2, 'FD');
+          doc.roundedRect(leftX, topY, leftW, pageHeight - 40, 2, 2, 'FD');
 
-          try {
-            const loaded = await loadImage(photo.src);
-            if (loaded) {
-              doc.addImage(loaded, 'JPEG', rightX + 2, pY + 2, rightW - 4, pHeight - 4);
+          doc.setTextColor(0, 86, 179);
+          doc.setFontSize(9.5);
+          doc.setFont('helvetica', 'bold');
+          doc.text("SETUP SPECIFICATIONS:", leftX + 4, topY + 8);
+
+          let descY = topY + 14;
+          const descText = pageData.description || (pIdx === 0 ? sc.description : '');
+
+          if (descText) {
+            doc.setFontSize(8.5);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(40, 40, 40);
+            const splitDesc = doc.splitTextToSize(descText, leftW - 8);
+            doc.text(splitDesc, leftX + 4, descY);
+            descY += (splitDesc.length * 4.5) + 6;
+          }
+
+          doc.setFillColor(255, 255, 255);
+          doc.setDrawColor(0, 86, 179);
+          doc.roundedRect(leftX + 4, descY, leftW - 8, 14, 2, 2, 'FD');
+
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(60, 60, 60);
+          doc.text("ITEM TOTAL ENTRY:", leftX + 8, descY + 5.5);
+          doc.setFontSize(10);
+          doc.setTextColor(0, 136, 255);
+          doc.text(formatRs(sc.unitPrice || item.unitPrice), leftX + 8, descY + 10.5);
+
+          const rightX = 96;
+          const rightW = 102;
+          const pagePhotos = pageData.photos || [];
+
+          if (pagePhotos.length === 0) {
+            doc.setFillColor(248, 250, 254);
+            doc.setDrawColor(210, 225, 245);
+            doc.roundedRect(rightX, topY, rightW, pageHeight - 40, 2, 2, 'FD');
+            doc.setTextColor(120, 120, 120);
+            doc.setFontSize(9);
+            doc.text("No photo attachments for this setup page.", rightX + rightW / 2, topY + 40, { align: 'center' });
+          } else {
+            const maxPhotos = Math.min(4, pagePhotos.length);
+            const pHeight = maxPhotos > 2 ? 60 : 120;
+
+            for (let photoIdx = 0; photoIdx < maxPhotos; photoIdx++) {
+              const photo = pagePhotos[photoIdx];
+              const pY = topY + (photoIdx * (pHeight + 4));
+
+              doc.setFillColor(248, 250, 254);
+              doc.setDrawColor(210, 225, 245);
+              doc.setLineWidth(0.4);
+              doc.roundedRect(rightX, pY, rightW, pHeight, 2, 2, 'FD');
+
+              try {
+                if (photo.src && typeof photo.src === 'string' && photo.src.startsWith('data:image/')) {
+                  const fmt = photo.src.includes('data:image/png') ? 'PNG' : 'JPEG';
+                  doc.addImage(photo.src, fmt, rightX + 2, pY + 2, rightW - 4, pHeight - 4);
+                } else {
+                  const loaded = await loadImage(photo.src);
+                  if (loaded) {
+                    doc.addImage(loaded, 'JPEG', rightX + 2, pY + 2, rightW - 4, pHeight - 4);
+                  }
+                }
+              } catch (err) {
+                console.error('Error adding photo to PDF showcase page:', err);
+              }
             }
-          } catch (err) {
-            console.error('Error adding photo to PDF showcase page:', err);
           }
         }
       }

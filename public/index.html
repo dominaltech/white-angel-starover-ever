@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>White Angel Events - Quotation Maker System</title>
   <meta name="description" content="Professional event quotation generator for White Angel Events. Create, save, edit, and send high-quality event requirement PDFs via WhatsApp.">
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=13">
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,7 +155,7 @@
         <div class="dashboard-card">
           <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px;">
             <span>FUNCTION DETAILS</span>
-            <button type="button" class="chk-detail-btn" style="background: rgba(255,255,255,0.2);" onclick="window.BillTab.openCheckpointModal('fn_general')" title="Add Function Showcase Details">+</button>
+            <button type="button" class="chk-detail-btn" style="background: rgba(255,255,255,0.2);" onclick="window.BillTab.openVisualPageForCheckpoint('fn_General')" title="Open General Function Page">+</button>
           </div>
           <div class="card-content-body">
             <div class="function-checkbox-grid">
@@ -163,49 +163,49 @@
                 <label class="compact-checkbox-label" style="flex: 1;">
                   <input type="checkbox" class="function-checkbox" value="Engagement"> Engagement
                 </label>
-                <button type="button" class="chk-detail-btn" id="btn_fn_Engagement" onclick="window.BillTab.openCheckpointModal('fn_Engagement')" title="Add Engagement Showcase Details">+</button>
+                <button type="button" class="chk-detail-btn" id="btn_fn_Engagement" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Engagement')" title="Open Engagement Showcase Page">+</button>
               </div>
 
               <div class="compact-checkpoint-item" style="padding: 2px 4px; border: none; background: transparent;">
                 <label class="compact-checkbox-label" style="flex: 1;">
                   <input type="checkbox" class="function-checkbox" value="Nikah / Wedding"> Wedding
                 </label>
-                <button type="button" class="chk-detail-btn" id="btn_fn_Wedding" onclick="window.BillTab.openCheckpointModal('fn_Wedding')" title="Add Wedding Showcase Details">+</button>
+                <button type="button" class="chk-detail-btn" id="btn_fn_Wedding" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Wedding')" title="Open Wedding Showcase Page">+</button>
               </div>
 
               <div class="compact-checkpoint-item" style="padding: 2px 4px; border: none; background: transparent;">
                 <label class="compact-checkbox-label" style="flex: 1;">
                   <input type="checkbox" class="function-checkbox" value="Haldi"> Haldi
                 </label>
-                <button type="button" class="chk-detail-btn" id="btn_fn_Haldi" onclick="window.BillTab.openCheckpointModal('fn_Haldi')" title="Add Haldi Showcase Details">+</button>
+                <button type="button" class="chk-detail-btn" id="btn_fn_Haldi" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Haldi')" title="Open Haldi Showcase Page">+</button>
               </div>
 
               <div class="compact-checkpoint-item" style="padding: 2px 4px; border: none; background: transparent;">
                 <label class="compact-checkbox-label" style="flex: 1;">
                   <input type="checkbox" class="function-checkbox" value="Reception"> Reception
                 </label>
-                <button type="button" class="chk-detail-btn" id="btn_fn_Reception" onclick="window.BillTab.openCheckpointModal('fn_Reception')" title="Add Reception Showcase Details">+</button>
+                <button type="button" class="chk-detail-btn" id="btn_fn_Reception" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Reception')" title="Open Reception Showcase Page">+</button>
               </div>
 
               <div class="compact-checkpoint-item" style="padding: 2px 4px; border: none; background: transparent;">
                 <label class="compact-checkbox-label" style="flex: 1;">
                   <input type="checkbox" class="function-checkbox" value="Mehendi"> Mehendi
                 </label>
-                <button type="button" class="chk-detail-btn" id="btn_fn_Mehendi" onclick="window.BillTab.openCheckpointModal('fn_Mehendi')" title="Add Mehendi Showcase Details">+</button>
+                <button type="button" class="chk-detail-btn" id="btn_fn_Mehendi" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Mehendi')" title="Open Mehendi Showcase Page">+</button>
               </div>
 
               <div class="compact-checkpoint-item" style="padding: 2px 4px; border: none; background: transparent;">
                 <label class="compact-checkbox-label" style="flex: 1;">
                   <input type="checkbox" class="function-checkbox" value="Walima"> Walima
                 </label>
-                <button type="button" class="chk-detail-btn" id="btn_fn_Walima" onclick="window.BillTab.openCheckpointModal('fn_Walima')" title="Add Walima Showcase Details">+</button>
+                <button type="button" class="chk-detail-btn" id="btn_fn_Walima" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Walima')" title="Open Walima Showcase Page">+</button>
               </div>
 
               <div class="compact-checkpoint-item" style="padding: 2px 4px; border: none; background: transparent;">
                 <label class="compact-checkbox-label" style="flex: 1;">
                   <input type="checkbox" class="function-checkbox" value="Sangeet"> Sangeet
                 </label>
-                <button type="button" class="chk-detail-btn" id="btn_fn_Sangeet" onclick="window.BillTab.openCheckpointModal('fn_Sangeet')" title="Add Sangeet Showcase Details">+</button>
+                <button type="button" class="chk-detail-btn" id="btn_fn_Sangeet" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Sangeet')" title="Open Sangeet Showcase Page">+</button>
               </div>
             </div>
             <div class="field-row" style="margin-top: 6px;">
@@ -213,56 +213,97 @@
                 <input type="checkbox" class="function-checkbox" value="Other" id="chkOtherFunction"> Other:
               </label>
               <input type="text" id="otherFunctionText" class="compact-input" placeholder="Custom function name...">
-              <button type="button" class="chk-detail-btn" id="btn_fn_Other" onclick="window.BillTab.openCheckpointModal('fn_Other')" title="Add Custom Function Showcase Details">+</button>
+              <button type="button" class="chk-detail-btn" id="btn_fn_Other" onclick="window.BillTab.openVisualPageForCheckpoint('fn_Other')" title="Open Custom Function Showcase Page">+</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ROW 2: MIDDLE 4-COLUMN GRID (Decoration, Catering, Photography, Accommodation & Transport) -->
-      <div class="dashboard-grid-4col">
+      <!-- ROW 2: DECORATION & ZERO-SPACE ON-DEMAND OPTIONAL SERVICES -->
+      <div style="margin-bottom: 12px;">
         
-        <!-- 1. Decoration Requirements -->
-        <div class="dashboard-card">
+        <!-- 1. Decoration Requirements (Main Service) -->
+        <div class="dashboard-card" style="margin-bottom: 8px;">
           <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px;">
-            <span>DECORATION REQUIREMENTS</span>
+            <span style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.82rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              DECORATION REQUIREMENTS
+            </span>
             <button type="button" class="chk-detail-btn" style="background: rgba(255,255,255,0.2);" onclick="window.BillTab.addCustomItem('decorationCheckpoints', 'decoration')" title="Add Custom Decoration Item">+</button>
           </div>
-          <div class="card-content-body" style="padding: 8px;">
+          <div id="body_decoration" class="card-content-body" style="padding: 8px;">
             <div id="decorationCheckpoints" class="checkpoint-list">
               <!-- Rendered via JS with QTY buttons and + buttons -->
             </div>
           </div>
         </div>
 
-        <!-- 2. Catering -->
-        <div class="dashboard-card">
-          <div class="card-title-bar">CATERING</div>
+        <!-- Sleek On-Demand Service Pill Bar (Takes 0 Space for Hidden Boxes) -->
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 8px 0 10px 0;">
+          <span style="font-size: 0.75rem; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            ADD EXTRA SERVICES:
+          </span>
+          <button type="button" class="opt-service-pill" id="pill_catering" onclick="window.BillTab.toggleOptionalCard('card_catering', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            + Catering
+          </button>
+          <button type="button" class="opt-service-pill" id="pill_photography" onclick="window.BillTab.toggleOptionalCard('card_photography', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            + Photography & Video
+          </button>
+          <button type="button" class="opt-service-pill" id="pill_accommodation" onclick="window.BillTab.toggleOptionalCard('card_accommodation', this)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+            + Accommodation & Transport
+          </button>
+        </div>
+
+        <!-- 2. Catering Box (Takes ZERO Space When Hidden - display:none) -->
+        <div id="card_catering" class="dashboard-card" style="display: none; margin-bottom: 10px; border: 1.5px solid #0284c7;">
+          <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: linear-gradient(135deg, #0056b3 0%, #0088ff 100%);">
+            <span style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.82rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              CATERING SERVICES
+            </span>
+            <button type="button" style="background: none; border: none; color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer; padding: 0 4px;" onclick="window.BillTab.toggleOptionalCard('card_catering', document.getElementById('pill_catering'))" title="Close Catering Box">&times;</button>
+          </div>
           <div class="card-content-body" style="padding: 8px;">
             <div id="cateringCheckpoints" class="checkpoint-list">
-              <!-- Rendered via JS with QTY buttons and + buttons -->
+              <!-- Rendered via JS -->
             </div>
           </div>
         </div>
 
-        <!-- 3. Photography & Videography -->
-        <div class="dashboard-card">
-          <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px;">
-            <span>PHOTOGRAPHY & VIDEO</span>
-            <button type="button" class="chk-detail-btn" style="background: rgba(255,255,255,0.2);" onclick="window.BillTab.addCustomItem('photographyCheckpoints', 'photography')" title="Add Custom Photography Service">+</button>
+        <!-- 3. Photography & Videography Box (Takes ZERO Space When Hidden - display:none) -->
+        <div id="card_photography" class="dashboard-card" style="display: none; margin-bottom: 10px; border: 1.5px solid #0284c7;">
+          <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: linear-gradient(135deg, #0056b3 0%, #0088ff 100%);">
+            <span style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.82rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              PHOTOGRAPHY & VIDEOGRAPHY SERVICES
+            </span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" class="chk-detail-btn" style="background: rgba(255,255,255,0.25);" onclick="window.BillTab.addCustomItem('photographyCheckpoints', 'photography')" title="Add Custom Photography Service">+</button>
+              <button type="button" style="background: none; border: none; color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer; padding: 0 4px;" onclick="window.BillTab.toggleOptionalCard('card_photography', document.getElementById('pill_photography'))" title="Close Photography Box">&times;</button>
+            </div>
           </div>
           <div class="card-content-body" style="padding: 8px;">
             <div id="photographyCheckpoints" class="checkpoint-list">
-              <!-- Rendered via JS with QTY buttons and + buttons -->
+              <!-- Rendered via JS -->
             </div>
           </div>
         </div>
 
-        <!-- 4. Accommodation & Transport -->
-        <div class="dashboard-card">
-          <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px;">
-            <span>ACCOMMODATION & TRANSPORT</span>
-            <button type="button" class="chk-detail-btn" style="background: rgba(255,255,255,0.2);" onclick="window.BillTab.addCustomItem('transportCheckpoints', 'transport')" title="Add Custom Transport">+</button>
+        <!-- 4. Accommodation & Transport Box (Takes ZERO Space When Hidden - display:none) -->
+        <div id="card_accommodation" class="dashboard-card" style="display: none; margin-bottom: 10px; border: 1.5px solid #0284c7;">
+          <div class="card-title-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: linear-gradient(135deg, #0056b3 0%, #0088ff 100%);">
+            <span style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.82rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+              ACCOMMODATION & TRANSPORT SERVICES
+            </span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button type="button" class="chk-detail-btn" style="background: rgba(255,255,255,0.25);" onclick="window.BillTab.addCustomItem('transportCheckpoints', 'transport')" title="Add Custom Transport">+</button>
+              <button type="button" style="background: none; border: none; color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer; padding: 0 4px;" onclick="window.BillTab.toggleOptionalCard('card_accommodation', document.getElementById('pill_accommodation'))" title="Close Accommodation Box">&times;</button>
+            </div>
           </div>
           <div class="card-content-body" style="padding: 8px;">
             <div id="accommodationCheckpoints" class="checkpoint-list">
@@ -470,54 +511,11 @@
 
   </main>
 
-  <!-- ========================================== -->
-  <!-- MODAL 1: CHECKPOINT (+) SHOWCASE EDITOR     -->
-  <!-- ========================================== -->
-  <div id="checkpointModal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="modalCheckpointItemName">➕ ITEM SHOWCASE & ATTACHMENTS</h3>
-        <button type="button" class="modal-close-btn" onclick="window.BillTab.closeCheckpointModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="modalItemId">
-        
-        <div class="form-group">
-          <label for="modalShowcaseTitle">1. Title (Appears at top of dedicated PDF Page)</label>
-          <input type="text" id="modalShowcaseTitle" class="form-input" placeholder="e.g. Stage Decoration Setup Specifications">
-        </div>
-
-        <div class="form-group">
-          <label for="modalShowcaseDesc">2. Description (Appears on left side of PDF Page)</label>
-          <textarea id="modalShowcaseDesc" class="form-textarea" rows="4" placeholder="Enter setup specifications, dimensions, color themes, or special instructions..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="modalShowcasePrice">3. Total Entry / Price (₹)</label>
-          <input type="number" id="modalShowcasePrice" class="form-input" placeholder="Enter custom price...">
-        </div>
-
-        <div class="form-group">
-          <label>4. Upload Item Photos (Appears on right side of PDF Page)</label>
-          <div class="upload-dropzone" id="modalDropzone">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-            <div style="font-weight: 600; font-size: 0.88rem;">Click or Drag Photos for this Checkpoint</div>
-            <input type="file" id="modalFileInput" multiple accept="image/*" style="display: none;">
-          </div>
-          <div id="modalPhotoGrid" class="modal-photo-grid">
-            <!-- Thumbnail preview cards -->
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="window.BillTab.closeCheckpointModal()">Cancel</button>
-        <button type="button" class="btn-primary" onclick="window.BillTab.saveCheckpointModalData()">Save Showcase Details</button>
-      </div>
-    </div>
-  </div>
+  <!-- Hidden Image File Input for Canvas Direct Upload -->
+  <input type="file" id="canvasDirectFileInput" multiple accept="image/*" style="display: none;">
 
   <!-- ========================================== -->
-  <!-- MODAL 2: EDITABLE LETTERHEAD CUSTOMIZER   -->
+  <!-- MODAL: EDITABLE LETTERHEAD CUSTOMIZER   -->
   <!-- ========================================== -->
   <div id="letterheadModal" class="modal-overlay">
     <div class="modal-box" style="max-width: 540px;">
@@ -542,6 +540,18 @@
           <label for="lhHeaderTitle">Quotation Header Title</label>
           <input type="text" id="lhHeaderTitle" class="form-input" value="EVENT REQUIREMENT QUOTATION">
         </div>
+
+        <!-- Dynamic Extra Company Information Section -->
+        <div class="form-group" style="margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="margin: 0; font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">Company Info (GST, Email, Bank, Instagram, Branches, etc.)</label>
+            <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;" onclick="window.BillTab.addExtraCompanyInfoRow()">+ Add Company Info</button>
+          </div>
+          <div id="extraCompanyInfoContainer" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Dynamic Extra Info Input Rows -->
+          </div>
+        </div>
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secondary" onclick="window.BillTab.closeLetterheadModal()">Close</button>
@@ -555,15 +565,22 @@
   <!-- ========================================== -->
   <div id="pdfVisualEditorOverlay" class="pdf-editor-overlay">
     <div class="pdf-editor-toolbar">
-      <h3>🎨 INTERACTIVE PDF PREVIEW & VISUAL CANVAS EDITOR</h3>
-      <div style="font-size: 0.78rem; color: #94a3b8;">
-        💡 Click & Edit any text directly on pages! Drag photos, titles, and text blocks anywhere on the page!
-      </div>
-      <div class="pdf-editor-controls">
-        <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="window.BillTab.renderInteractivePdfCanvas()">🔄 Reset Canvas</button>
-        <button type="button" class="btn-primary" style="padding: 6px 16px; font-size: 0.82rem;" onclick="window.BillTab.downloadEditedPdfFromCanvas()">📄 Export Edited PDF</button>
-        <button type="button" class="btn-whatsapp" style="padding: 6px 16px; font-size: 0.82rem;" onclick="window.BillTab.shareEditedPdfWhatsAppFromCanvas()">💬 Share Edited PDF</button>
-        <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-color: #ef4444; color: #ef4444;" onclick="window.BillTab.closeInteractivePdfEditor()">&times; Close</button>
+      <h3 id="editorToolbarTitle">🎨 INTERACTIVE PDF CANVAS & PAGE CREATOR</h3>
+      <div class="pdf-editor-controls" style="flex-wrap: wrap;">
+        <!-- Single Page Save Button (Shown on + Click) -->
+        <button type="button" id="btnSaveSinglePage" class="btn-primary" style="display: none; padding: 6px 16px; font-size: 0.82rem; background: #10b981; border: none; color: white;" onclick="window.BillTab.saveSingleShowcasePage()">💾 Save Page</button>
+        
+        <!-- Element Creation Action Buttons (Always High Visibility) -->
+        <button type="button" id="btnAddDescription" class="btn-action-visible" style="padding: 7px 14px; font-size: 0.82rem; font-weight: 700; background: #0284c7; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="window.BillTab.addDescriptionCardToCanvas()">📝 Add Description</button>
+        <button type="button" id="btnAddTotalEntry" class="btn-action-visible" style="padding: 7px 14px; font-size: 0.82rem; font-weight: 700; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="window.BillTab.addTotalEntryCardToCanvas()">🏷️ Add Total Entry</button>
+        <button type="button" id="btnUploadImage" class="btn-action-visible" style="padding: 7px 14px; font-size: 0.82rem; font-weight: 700; background: #8b5cf6; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="document.getElementById('canvasDirectFileInput').click()">📷 Upload Image</button>
+        <button type="button" id="btnAddBlankPage" class="btn-action-visible" style="padding: 7px 14px; font-size: 0.82rem; font-weight: 700; background: #00d2ff; color: #000; border: none; border-radius: 4px; cursor: pointer;" onclick="window.BillTab.addBlankCanvasPage()">➕ Add Page</button>
+        
+        <!-- Document Export Buttons (Shown in Full Document Mode) -->
+        <button type="button" id="btnExportPdf" class="btn-primary" style="padding: 7px 16px; font-size: 0.82rem;" onclick="window.BillTab.downloadEditedPdfFromCanvas()">📄 Export PDF</button>
+        <button type="button" id="btnShareWhatsApp" class="btn-whatsapp" style="padding: 7px 16px; font-size: 0.82rem;" onclick="window.BillTab.shareEditedPdfWhatsAppFromCanvas()">💬 Share WhatsApp</button>
+        
+        <button type="button" class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; border-color: #ef4444; color: #ef4444;" onclick="window.BillTab.closeInteractivePdfEditor()">&times; Close</button>
       </div>
     </div>
     
@@ -573,14 +590,14 @@
   </div>
 
   <!-- JS Modules -->
-  <script src="assets.js?v=10"></script>
-  <script src="data.js?v=10"></script>
-  <script src="storage.js?v=10"></script>
-  <script src="pdfGenerator.js?v=10"></script>
-  <script src="billTab.js?v=10"></script>
-  <script src="summaryTab.js?v=10"></script>
-  <script src="manageTab.js?v=10"></script>
-  <script src="app.js?v=10"></script>
+  <script src="assets.js?v=13"></script>
+  <script src="data.js?v=13"></script>
+  <script src="storage.js?v=13"></script>
+  <script src="pdfGenerator.js?v=13"></script>
+  <script src="billTab.js?v=13"></script>
+  <script src="summaryTab.js?v=13"></script>
+  <script src="manageTab.js?v=13"></script>
+  <script src="app.js?v=13"></script>
 
 </body>
 </html>
