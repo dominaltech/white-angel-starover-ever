@@ -36,9 +36,9 @@ window.BillTab = {
     const catContainer = document.getElementById('cateringCheckpoints');
     if (catContainer) {
       catContainer.innerHTML = `
-        ${this.createCheckpointRowHtml({ id: 'cat_veg', category: 'catering', name: 'Veg Guests (Plates)', unitPrice: rates.catering.vegPerPlate, quantity: 100, selected: false })}
-        ${this.createCheckpointRowHtml({ id: 'cat_nonveg', category: 'catering', name: 'Non-Veg Guests (Plates)', unitPrice: rates.catering.nonVegPerPlate, quantity: 100, selected: false })}
-        ${this.createCheckpointRowHtml({ id: 'cat_sweets', category: 'catering', name: 'Sweet Items (Plates)', unitPrice: rates.catering.sweetPerPlate, quantity: 100, selected: false })}
+        ${this.createCheckpointRowHtml({ id: 'cat_veg', category: 'catering', name: 'Veg Guests (Plates)', unitPrice: rates.catering.vegPerPlate, quantity: 1, selected: false })}
+        ${this.createCheckpointRowHtml({ id: 'cat_nonveg', category: 'catering', name: 'Non-Veg Guests (Plates)', unitPrice: rates.catering.nonVegPerPlate, quantity: 1, selected: false })}
+        ${this.createCheckpointRowHtml({ id: 'cat_sweets', category: 'catering', name: 'Sweet Items (Plates)', unitPrice: rates.catering.sweetPerPlate, quantity: 1, selected: false })}
         ${this.createCheckpointRowHtml({ id: 'cat_live_1', category: 'catering', name: 'Live Counter 1', unitPrice: rates.catering.liveCounterPerUnit, quantity: 1, selected: false })}
         ${this.createCheckpointRowHtml({ id: 'cat_live_2', category: 'catering', name: 'Live Counter 2', unitPrice: rates.catering.liveCounterPerUnit, quantity: 1, selected: false })}
         ${this.createCheckpointRowHtml({ id: 'cat_live_3', category: 'catering', name: 'Live Counter 3', unitPrice: rates.catering.liveCounterPerUnit, quantity: 1, selected: false })}
@@ -62,7 +62,7 @@ window.BillTab = {
     const accContainer = document.getElementById('accommodationCheckpoints');
     if (accContainer) {
       accContainer.innerHTML = `
-        ${this.createCheckpointRowHtml({ id: 'acc_rooms', category: 'accommodation', name: 'Hotel Rooms Required', unitPrice: rates.accommodation.perRoomPrice, quantity: 5, selected: false })}
+        ${this.createCheckpointRowHtml({ id: 'acc_rooms', category: 'accommodation', name: 'Hotel Rooms Required', unitPrice: rates.accommodation.perRoomPrice, quantity: 1, selected: false })}
       `;
     }
 
@@ -272,6 +272,34 @@ window.BillTab = {
     if (document.getElementById('btnShareWhatsApp')) document.getElementById('btnShareWhatsApp').style.display = 'none';
 
     document.getElementById('pdfVisualEditorOverlay').classList.add('active');
+    setTimeout(() => this.adjustMobileCanvasScale(), 20);
+  },
+
+  adjustMobileCanvasScale() {
+    const viewport = document.getElementById('pdfEditorViewport');
+    if (!viewport) return;
+    const pages = viewport.querySelectorAll('.wysiwyg-a4-page');
+    if (pages.length === 0) return;
+
+    const screenWidth = window.innerWidth;
+    if (screenWidth <= 820) {
+      const padding = 16;
+      const targetWidth = Math.max(280, screenWidth - padding);
+      const scale = Math.min(1, targetWidth / 794);
+      const marginBottom = -1123 * (1 - scale) + 16;
+
+      pages.forEach(page => {
+        page.style.transformOrigin = 'top center';
+        page.style.transform = `scale(${scale})`;
+        page.style.marginBottom = `${marginBottom}px`;
+      });
+    } else {
+      pages.forEach(page => {
+        page.style.transformOrigin = '';
+        page.style.transform = '';
+        page.style.marginBottom = '';
+      });
+    }
   },
 
   addDescriptionCardToCanvas() {
@@ -612,6 +640,7 @@ window.BillTab = {
 
     this.renderInteractivePdfCanvas(data);
     document.getElementById('pdfVisualEditorOverlay').classList.add('active');
+    setTimeout(() => this.adjustMobileCanvasScale(), 20);
   },
 
   closeInteractivePdfEditor() {
@@ -927,10 +956,12 @@ window.BillTab = {
         const startY = e.clientY || (e.touches && e.touches[0].clientY);
 
         const rect = el.getBoundingClientRect();
-        const parentRect = el.parentElement.getBoundingClientRect();
+        const pageEl = el.closest('.wysiwyg-a4-page');
+        const pageRect = pageEl ? pageEl.getBoundingClientRect() : null;
+        const scale = (pageRect && pageRect.width > 0) ? (pageRect.width / 794) : 1;
 
-        const initialLeft = rect.left - parentRect.left;
-        const initialTop = rect.top - parentRect.top;
+        const initialLeft = (rect.left - parentRect.left) / scale;
+        const initialTop = (rect.top - parentRect.top) / scale;
 
         el.style.position = 'absolute';
         el.classList.add('selected');
@@ -939,8 +970,8 @@ window.BillTab = {
           const currentX = moveEvt.clientX || (moveEvt.touches && moveEvt.touches[0].clientX);
           const currentY = moveEvt.clientY || (moveEvt.touches && moveEvt.touches[0].clientY);
 
-          const deltaX = currentX - startX;
-          const deltaY = currentY - startY;
+          const deltaX = (currentX - startX) / scale;
+          const deltaY = (currentY - startY) / scale;
 
           el.style.left = Math.max(0, (initialLeft + deltaX)) + 'px';
           el.style.top = Math.max(0, (initialTop + deltaY)) + 'px';
@@ -971,6 +1002,10 @@ window.BillTab = {
           const startX = e.clientX || (e.touches && e.touches[0].clientX);
           const startY = e.clientY || (e.touches && e.touches[0].clientY);
 
+          const pageEl = el.closest('.wysiwyg-a4-page');
+          const pageRect = pageEl ? pageEl.getBoundingClientRect() : null;
+          const scale = (pageRect && pageRect.width > 0) ? (pageRect.width / 794) : 1;
+
           const startWidth = el.offsetWidth;
           const startHeight = el.offsetHeight;
 
@@ -978,8 +1013,8 @@ window.BillTab = {
             const currentX = resizeEvt.clientX || (resizeEvt.touches && resizeEvt.touches[0].clientX);
             const currentY = resizeEvt.clientY || (resizeEvt.touches && resizeEvt.touches[0].clientY);
 
-            const deltaX = currentX - startX;
-            const deltaY = currentY - startY;
+            const deltaX = (currentX - startX) / scale;
+            const deltaY = (currentY - startY) / scale;
 
             const newWidth = Math.max(60, startWidth + deltaX);
             const newHeight = Math.max(30, startHeight + deltaY);
@@ -1341,5 +1376,6 @@ window.BillTab = {
     if (fileInput) {
       fileInput.addEventListener('change', (e) => this.handleCanvasDirectImageUpload(e.target.files));
     }
+    window.addEventListener('resize', () => this.adjustMobileCanvasScale());
   }
 };
