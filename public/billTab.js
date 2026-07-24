@@ -459,6 +459,10 @@ window.BillTab = {
     const titleEl = document.getElementById('scHeaderTitle') || pages[0].querySelector('.draggable-pdf-element');
     const title = titleEl ? titleEl.innerText.replace('✥ Drag Header', '').replace('⤢', '').trim() : 'SHOWCASE DETAILS';
 
+    // Create clean HTML copy without delete buttons or edit badges for storage
+    const cleanViewport = viewport.cloneNode(true);
+    cleanViewport.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .photo-delete-btn, .rate-delete-btn, .helper-dropzone, button').forEach(el => el.remove());
+
     // Store in checkpointShowcases with full multi-page support
     this.checkpointShowcases[itemId] = {
       title,
@@ -466,7 +470,7 @@ window.BillTab = {
       unitPrice: itemPrice,
       photos,
       pages: pagesData,
-      savedCanvasHtml: viewport.innerHTML
+      savedCanvasHtml: cleanViewport.innerHTML
     };
 
     const row = document.querySelector(`.compact-checkpoint-item[data-id="${itemId}"]`);
@@ -520,6 +524,7 @@ window.BillTab = {
 
     viewport.insertAdjacentHTML('beforeend', pageHtml);
     this.makePdfElementsDraggable();
+    setTimeout(() => this.adjustMobileCanvasScale(), 20);
     window.App.showToast(`Added Showcase Page #${pageCount}!`, 'success');
   },
 
@@ -955,13 +960,8 @@ window.BillTab = {
         const startX = e.clientX || (e.touches && e.touches[0].clientX);
         const startY = e.clientY || (e.touches && e.touches[0].clientY);
 
-        const rect = el.getBoundingClientRect();
-        const pageEl = el.closest('.wysiwyg-a4-page');
-        const pageRect = pageEl ? pageEl.getBoundingClientRect() : null;
-        const scale = (pageRect && pageRect.width > 0) ? (pageRect.width / 794) : 1;
-
-        const initialLeft = (rect.left - parentRect.left) / scale;
-        const initialTop = (rect.top - parentRect.top) / scale;
+        const initialLeft = el.offsetLeft;
+        const initialTop = el.offsetTop;
 
         el.style.position = 'absolute';
         el.classList.add('selected');
@@ -969,12 +969,17 @@ window.BillTab = {
         const onMove = (moveEvt) => {
           const currentX = moveEvt.clientX || (moveEvt.touches && moveEvt.touches[0].clientX);
           const currentY = moveEvt.clientY || (moveEvt.touches && moveEvt.touches[0].clientY);
+          if (currentX === undefined || currentY === undefined) return;
+
+          const pageEl = el.closest('.wysiwyg-a4-page');
+          const pageRect = pageEl ? pageEl.getBoundingClientRect() : null;
+          const scale = (pageRect && pageRect.width > 0) ? (pageRect.width / 794) : 1;
 
           const deltaX = (currentX - startX) / scale;
           const deltaY = (currentY - startY) / scale;
 
-          el.style.left = Math.max(0, (initialLeft + deltaX)) + 'px';
-          el.style.top = Math.max(0, (initialTop + deltaY)) + 'px';
+          el.style.left = Math.max(0, Math.min(794 - el.offsetWidth, initialLeft + deltaX)) + 'px';
+          el.style.top = Math.max(0, Math.min(1123 - el.offsetHeight, initialTop + deltaY)) + 'px';
         };
 
         const onStop = () => {
@@ -1046,9 +1051,7 @@ window.BillTab = {
     const pages = document.querySelectorAll('.wysiwyg-a4-page');
     if (pages.length === 0) return;
 
-    window.App.showToast('Rendering pixel-perfect PDF from visual canvas...', 'info');
-
-    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = 'none');
+    window.App.showToast('Rendering 600 DPI Ultra-HD PDF from visual canvas...', 'info');
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -1057,20 +1060,29 @@ window.BillTab = {
 
     for (let i = 0; i < pages.length; i++) {
       const pageEl = pages[i];
-      const canvas = await html2canvas(pageEl, {
-        scale: 2,
+      const clone = pageEl.cloneNode(true);
+      clone.style.cssText = 'position: fixed; left: -9999px; top: -9999px; width: 794px; height: 1123px; background: #ffffff; z-index: -9999; transform: none !important; margin: 0 !important;';
+      
+      // Physically REMOVE all delete buttons, badges, handles, and dropzones
+      clone.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .photo-delete-btn, .rate-delete-btn, .helper-dropzone, button').forEach(b => b.remove());
+
+      document.body.appendChild(clone);
+
+      const canvas = await html2canvas(clone, {
+        scale: 4,
         useCORS: true,
         allowTaint: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        imageTimeout: 0
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      if (i > 0) doc.addPage();
-      doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
-    }
+      document.body.removeChild(clone);
 
-    document.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = '');
+      const imgData = canvas.toDataURL('image/png');
+      if (i > 0) doc.addPage();
+      doc.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+    }
 
     const data = this.getQuotationData();
     const clientName = [data.clientDetails.groomName, data.clientDetails.brideName].filter(Boolean).join('_') || 'Client';

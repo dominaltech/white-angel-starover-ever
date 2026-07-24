@@ -354,23 +354,26 @@ window.PdfGenerator = {
         tempDiv.innerHTML = sc.savedCanvasHtml;
         document.body.appendChild(tempDiv);
 
-        // Hide badges, resize handles, and delete buttons before rendering canvas
-        tempDiv.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .helper-dropzone').forEach(b => b.style.display = 'none');
+        // Physically REMOVE all delete buttons, drag badges, and corner resize handles from DOM before rendering
+        tempDiv.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .photo-delete-btn, .rate-delete-btn, .helper-dropzone, button').forEach(b => {
+          b.remove();
+        });
 
         const pages = tempDiv.querySelectorAll('.wysiwyg-a4-page');
         for (let pIdx = 0; pIdx < pages.length; pIdx++) {
           const pageEl = pages[pIdx];
           const canvas = await html2canvas(pageEl, {
-            scale: 2,
+            scale: 4,
             useCORS: true,
             allowTaint: true,
             logging: false,
-            backgroundColor: '#ffffff'
+            backgroundColor: '#ffffff',
+            imageTimeout: 0
           });
 
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
+          const imgData = canvas.toDataURL('image/png');
           doc.addPage();
-          doc.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
+          doc.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
         }
 
         document.body.removeChild(tempDiv);
