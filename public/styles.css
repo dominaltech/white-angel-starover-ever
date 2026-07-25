@@ -633,6 +633,95 @@ body {
   box-sizing: border-box;
 }
 
+/* Page Header Action Control Buttons (Top Right Corner) */
+.page-top-actions {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+}
+
+.page-top-actions .page-add-next-btn {
+  background: #0088ff;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+}
+
+.page-top-actions .page-delete-btn {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  width: 28px;
+  height: 28px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.page-top-actions .page-add-next-btn:hover {
+  transform: scale(1.15);
+  background: #0066cc;
+}
+
+.page-top-actions .page-delete-btn:hover {
+  transform: scale(1.15);
+  background: #dc2626;
+}
+
+/* Card Delete Button (For Description & Total Entry Cards) */
+.card-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  background: rgba(239, 68, 68, 0.9);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.card-delete-btn:hover {
+  transform: scale(1.15);
+  background: #dc2626;
+}
+
 /* Mobile responsive scaling for PDF Visual Canvas Editor */
 @media (max-width: 820px) {
   .pdf-editor-toolbar {

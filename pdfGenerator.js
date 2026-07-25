@@ -354,8 +354,8 @@ window.PdfGenerator = {
         tempDiv.innerHTML = sc.savedCanvasHtml;
         document.body.appendChild(tempDiv);
 
-        // Physically REMOVE all delete buttons, drag badges, and corner resize handles from DOM before rendering
-        tempDiv.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .photo-delete-btn, .rate-delete-btn, .helper-dropzone, button').forEach(b => {
+        // Physically REMOVE all delete buttons, drag badges, page add buttons, card delete buttons, and corner resize handles from DOM before rendering
+        tempDiv.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .photo-delete-btn, .rate-delete-btn, .card-delete-btn, .page-add-next-btn, .page-top-actions, .helper-dropzone, button').forEach(b => {
           b.remove();
         });
 

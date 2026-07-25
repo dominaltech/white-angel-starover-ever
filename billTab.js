@@ -236,20 +236,22 @@ window.BillTab = {
       // Render initial showcase page
       viewport.innerHTML = `
         <div class="wysiwyg-a4-page" id="showcase-page-1" data-showcase-id="${itemId}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
-          
+          <div class="page-top-actions">
+            <button type="button" class="page-delete-btn" onclick="this.closest('.wysiwyg-a4-page').remove()" title="Delete Page">&times;</button>
+          </div>
           <!-- Editable Header Title Bar -->
           <div class="draggable-pdf-element" style="top: 45px; left: 45px; width: 704px; height: 42px; background: #0056b3; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 15px; font-weight: 800;" contenteditable="true">
-            <span class="drag-handle-badge">✥ Drag Header</span>
-            <span class="corner-resize-handle">⤢</span>
+            <span class="drag-handle-badge">Drag Header</span>
+            <span class="corner-resize-handle"></span>
             <span id="scHeaderTitle">${(existing.title || itemName + ' SHOWCASE & SETUP DETAILS').toUpperCase()}</span>
           </div>
 
           <!-- Initial Helper Instructions Dropzone -->
           <div class="draggable-pdf-element helper-dropzone" style="top: 120px; left: 45px; width: 704px; height: 180px; background: #f8fafe; border: 2px dashed #0088ff; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;">
-            <span class="drag-handle-badge">✥ Drag Notice</span>
-            <span class="corner-resize-handle">⤢</span>
+            <span class="drag-handle-badge">Drag Notice</span>
+            <span class="corner-resize-handle"></span>
             <div style="font-size: 14px; font-weight: 800; color: #0056b3; margin-bottom: 6px;">Add Content Cards Anywhere On This Page</div>
-            <div style="font-size: 12px; color: #475569;">Click <strong>📝 Add Description</strong>, <strong>🏷️ Add Total Entry</strong>, or <strong>📷 Upload Image</strong> on top toolbar! (Max 4 images per page)</div>
+            <div style="font-size: 12px; color: #475569;">Click <strong>Add Description</strong>, <strong>Add Total Entry</strong>, or <strong>Upload Image</strong> on top toolbar! (Max 4 images per page)</div>
           </div>
 
         </div>
@@ -260,7 +262,7 @@ window.BillTab = {
 
     // Configure Toolbar for Single Showcase Page Creator Mode
     if (document.getElementById('editorToolbarTitle')) {
-      document.getElementById('editorToolbarTitle').textContent = `➕ SHOWCASE PAGE: ${itemName.toUpperCase()}`;
+      document.getElementById('editorToolbarTitle').textContent = `SHOWCASE PAGE: ${itemName.toUpperCase()}`;
     }
     if (document.getElementById('btnSaveSinglePage')) document.getElementById('btnSaveSinglePage').style.display = 'inline-flex';
     if (document.getElementById('btnAddDescription')) document.getElementById('btnAddDescription').style.display = 'inline-flex';
@@ -312,16 +314,17 @@ window.BillTab = {
 
     const descHtml = `
       <div class="draggable-pdf-element sc-desc-card" style="top: 120px; left: 45px; width: 340px; height: 280px; background: #f8fafe; border: 1.5px solid #d2e1f5; border-radius: 6px; padding: 16px;">
-        <span class="drag-handle-badge">✥ Drag Description</span>
-        <span class="corner-resize-handle">⤢</span>
+        <span class="drag-handle-badge">Drag Description</span>
+        <button type="button" class="card-delete-btn" onclick="this.parentElement.remove()" title="Delete Description Box">&times;</button>
+        <span class="corner-resize-handle"></span>
         <div style="font-size: 13px; font-weight: 800; color: #0056b3; margin-bottom: 8px;">SETUP SPECIFICATIONS:</div>
-        <div class="sc-desc-content" style="font-size: 12px; color: #282828; line-height: 1.6; outline: none;" contenteditable="true">Type custom setup instructions, dimensions, color themes, flower requirements, lighting setups, or special details here...</div>
+        <div class="sc-desc-content" style="font-size: 12px; color: #282828; line-height: 1.6; outline: none; min-height: 180px;" contenteditable="true"></div>
       </div>
     `;
 
     activePage.insertAdjacentHTML('beforeend', descHtml);
     this.makePdfElementsDraggable();
-    window.App.showToast('Added Draggable Description Card!', 'success');
+    window.App.showToast('Added Description Card with delete button!', 'success');
   },
 
   addTotalEntryCardToCanvas() {
@@ -333,20 +336,21 @@ window.BillTab = {
     if (helper) helper.remove();
 
     const row = document.querySelector(`.compact-checkpoint-item[data-id="${this.activeModalItemId}"]`);
-    const price = row ? row.querySelector('.chk-price-input').value : 0;
+    const price = row ? (row.querySelector('.chk-price-input')?.value || 0) : (this.checkpointShowcases[this.activeModalItemId]?.unitPrice || 0);
 
     const priceHtml = `
-      <div class="draggable-pdf-element sc-price-card" style="top: 420px; left: 45px; width: 280px; height: 75px; background: #ffffff; border: 1.5px solid #0056b3; border-radius: 6px; padding: 10px;">
-        <span class="drag-handle-badge">✥ Drag Total Entry</span>
-        <span class="corner-resize-handle">⤢</span>
-        <div style="font-size: 10px; font-weight: 700; color: #3c3c3c;">ITEM TOTAL ENTRY:</div>
-        <div class="sc-price-val" style="font-size: 16px; font-weight: 800; color: #0088ff;" contenteditable="true">Rs. ${Number(price).toLocaleString('en-IN')}</div>
+      <div class="draggable-pdf-element sc-price-card" style="top: 960px; left: 405px; width: 344px; height: 110px; background: white; border: 1.5px solid #0056b3; border-radius: 6px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <span class="drag-handle-badge">Drag Total Entry</span>
+        <button type="button" class="card-delete-btn" onclick="this.parentElement.remove()" title="Delete Total Entry Box">&times;</button>
+        <span class="corner-resize-handle"></span>
+        <div style="font-size: 11px; font-weight: 800; color: #3c3c3c; letter-spacing: 0.5px; margin-bottom: 4px;">ITEM TOTAL ENTRY:</div>
+        <div class="sc-price-val" style="font-size: 20px; font-weight: 800; color: #0088ff;" contenteditable="true">Rs. ${Number(price).toLocaleString('en-IN')}</div>
       </div>
     `;
 
     activePage.insertAdjacentHTML('beforeend', priceHtml);
     this.makePdfElementsDraggable();
-    window.App.showToast('Added Draggable Total Entry Price Card!', 'success');
+    window.App.showToast('Added Total Entry Card with delete button at bottom right!', 'success');
   },
 
   async handleCanvasDirectImageUpload(files) {
@@ -495,15 +499,21 @@ window.BillTab = {
   },
 
   addBlankCanvasPage() {
+    this.addBlankCanvasPageAfter(null);
+  },
+
+  addBlankCanvasPageAfter(targetPage = null) {
     const viewport = document.getElementById('pdfEditorViewport');
     if (!viewport) return;
 
     const pageCount = viewport.querySelectorAll('.wysiwyg-a4-page').length + 1;
-    const pageId = `wysiwyg-page-${pageCount}`;
+    const pageId = `wysiwyg-page-${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
 
     const pageHtml = `
       <div class="wysiwyg-a4-page" id="${pageId}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
-        <button type="button" class="page-delete-btn" onclick="this.parentElement.remove()" title="Delete Page">&times;</button>
+        <div class="page-top-actions">
+          <button type="button" class="page-delete-btn" onclick="this.closest('.wysiwyg-a4-page').remove()" title="Delete Page">&times;</button>
+        </div>
 
         <!-- Editable Title Header -->
         <div class="draggable-pdf-element" style="top: 45px; left: 45px; width: 704px; height: 42px; background: #0056b3; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 15px; font-weight: 800;" contenteditable="true">
@@ -522,7 +532,12 @@ window.BillTab = {
       </div>
     `;
 
-    viewport.insertAdjacentHTML('beforeend', pageHtml);
+    if (targetPage && targetPage.parentNode === viewport) {
+      targetPage.insertAdjacentHTML('afterend', pageHtml);
+    } else {
+      viewport.insertAdjacentHTML('beforeend', pageHtml);
+    }
+
     this.makePdfElementsDraggable();
     setTimeout(() => this.adjustMobileCanvasScale(), 20);
     window.App.showToast(`Added Showcase Page #${pageCount}!`, 'success');
@@ -893,8 +908,10 @@ window.BillTab = {
         `).join('');
 
         html += `
-          <div class="wysiwyg-a4-page" id="${pageId}" data-showcase-id="${item.id}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff;">
-            <button type="button" class="page-delete-btn" onclick="this.parentElement.remove()" title="Delete Page">&times;</button>
+          <div class="wysiwyg-a4-page" id="${pageId}" data-showcase-id="${item.id}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
+            <div class="page-top-actions">
+              <button type="button" class="page-delete-btn" onclick="this.closest('.wysiwyg-a4-page').remove()" title="Delete Page">&times;</button>
+            </div>
             
             <div class="draggable-pdf-element" style="top: 45px; left: 45px; width: 704px; height: 42px; background: #0056b3; color: white; padding: 10px; border-radius: 4px; text-align: center; font-size: 15px; font-weight: 800;" contenteditable="true">
               <span class="drag-handle-badge">✥ Drag Header</span>
@@ -1064,7 +1081,7 @@ window.BillTab = {
       clone.style.cssText = 'position: fixed; left: -9999px; top: -9999px; width: 794px; height: 1123px; background: #ffffff; z-index: -9999; transform: none !important; margin: 0 !important;';
       
       // Physically REMOVE all delete buttons, badges, handles, and dropzones
-      clone.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .photo-delete-btn, .rate-delete-btn, .helper-dropzone, button').forEach(b => b.remove());
+      clone.querySelectorAll('.drag-handle-badge, .corner-resize-handle, .page-delete-btn, .photo-delete-btn, .rate-delete-btn, .card-delete-btn, .page-add-next-btn, .page-top-actions, .helper-dropzone, button').forEach(b => b.remove());
 
       document.body.appendChild(clone);
 
