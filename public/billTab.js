@@ -237,6 +237,7 @@ window.BillTab = {
       viewport.innerHTML = `
         <div class="wysiwyg-a4-page" id="showcase-page-1" data-showcase-id="${itemId}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
           <div class="page-top-actions">
+            <button type="button" class="page-add-next-btn" onclick="window.BillTab.addBlankCanvasPageAfter(this.closest('.wysiwyg-a4-page'))" title="Add Next Page Below"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
             <button type="button" class="page-delete-btn" onclick="this.closest('.wysiwyg-a4-page').remove()" title="Delete Page">&times;</button>
           </div>
           <!-- Editable Header Title Bar -->
@@ -512,6 +513,7 @@ window.BillTab = {
     const pageHtml = `
       <div class="wysiwyg-a4-page" id="${pageId}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
         <div class="page-top-actions">
+          <button type="button" class="page-add-next-btn" onclick="window.BillTab.addBlankCanvasPageAfter(this.closest('.wysiwyg-a4-page'))" title="Add Next Page Below"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button type="button" class="page-delete-btn" onclick="this.closest('.wysiwyg-a4-page').remove()" title="Delete Page">&times;</button>
         </div>
 
@@ -910,6 +912,7 @@ window.BillTab = {
         html += `
           <div class="wysiwyg-a4-page" id="${pageId}" data-showcase-id="${item.id}" style="padding: 40px 45px; font-family: Inter, sans-serif; background: #ffffff; position: relative;">
             <div class="page-top-actions">
+              <button type="button" class="page-add-next-btn" onclick="window.BillTab.addBlankCanvasPageAfter(this.closest('.wysiwyg-a4-page'))" title="Add Next Page Below"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
               <button type="button" class="page-delete-btn" onclick="this.closest('.wysiwyg-a4-page').remove()" title="Delete Page">&times;</button>
             </div>
             
