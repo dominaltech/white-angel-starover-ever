@@ -405,12 +405,12 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             SAVED QUOTATIONS SUMMARY
           </h2>
-        </div>
-
-        <div class="summary-controls">
-          <div class="search-box">
-            <input type="text" id="summarySearchInput" class="form-input" placeholder="Search by Client Name, Phone, Venue, or Quote ID..." onkeyup="window.SummaryTab.loadQuotations()">
+          <div class="summary-controls">
+          <div class="summary-search-wrapper">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="summarySearchInput" class="summary-search-input" placeholder="Search by Client Name, Phone, Venue, or Quote ID..." onkeyup="window.SummaryTab.loadQuotations()">
           </div>
+        </div>
         </div>
 
         <div id="savedQuotesGrid" class="quote-cards-grid">
@@ -423,27 +423,27 @@
     <!-- TAB 3: MANAGE (PRICE MASTER)               -->
     <!-- ========================================== -->
     <div id="tab-manage" class="tab-content">
-
-      <!-- Decoration Rates -->
+      
+      <!-- 1. Decoration Rate Card -->
       <section class="card-section">
         <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
           <h2>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            DECORATION ITEM RATES (PRICE MASTER)
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            DECORATION RATES MASTER
           </h2>
-          <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;" onclick="window.ManageTab.addNewRateItem('decoration')">+ Add New Item</button>
+          <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;" onclick="window.ManageTab.addNewRateItem('decoration')">+ Add New Decoration</button>
         </div>
         <div id="manageDecorationRates" class="form-grid">
           <!-- Dynamic Rate Inputs -->
         </div>
       </section>
 
-      <!-- Catering Rates -->
+      <!-- 2. Catering Rate Card -->
       <section class="card-section">
         <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
           <h2>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-            CATERING ITEM RATES (PRICE MASTER)
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            CATERING & FOOD RATES
           </h2>
           <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;" onclick="window.ManageTab.addNewRateItem('catering')">+ Add New Catering Item</button>
         </div>
@@ -452,21 +452,21 @@
         </div>
       </section>
 
-      <!-- Photography Rates -->
+      <!-- 3. Photography & Videography Rate Card -->
       <section class="card-section">
         <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
           <h2>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            PHOTOGRAPHY & VIDEOGRAPHY RATES
+            PHOTOGRAPHY & VIDEO RATES
           </h2>
-          <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;" onclick="window.ManageTab.addNewRateItem('photography')">+ Add New Package</button>
+          <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;" onclick="window.ManageTab.addNewRateItem('photography')">+ Add New Photo/Video</button>
         </div>
         <div id="managePhotoRates" class="form-grid">
           <!-- Dynamic Rate Inputs -->
         </div>
       </section>
 
-      <!-- Accommodation & Transport Rates -->
+      <!-- 4. Accommodation & Transport Rate Card -->
       <section class="card-section">
         <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
           <h2>
@@ -475,12 +475,21 @@
           </h2>
           <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; background: var(--accent-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 700;" onclick="window.ManageTab.addNewRateItem('transport')">+ Add New Transport</button>
         </div>
-        <div class="form-grid" style="margin-bottom: 16px;">
-          <div class="form-group">
-            <label for="ratePerRoom">Per Room Price (₹)</label>
-            <input type="number" id="ratePerRoom" class="form-input" min="0">
+        
+        <!-- Per Room Price Card Matching Manage Rate Row Design -->
+        <div style="margin-bottom: 16px;">
+          <div class="manage-rate-row">
+            <div class="manage-rate-label">
+              <span class="manage-rate-badge">1</span>
+              <span class="manage-rate-title">Per Room Price Rate</span>
+            </div>
+            <div class="manage-rate-input-group">
+              <span class="currency-symbol">₹</span>
+              <input type="number" id="ratePerRoom" class="form-input" min="0" placeholder="1000">
+            </div>
           </div>
         </div>
+
         <div id="manageTransportRates" class="form-grid">
           <!-- Dynamic Rate Inputs -->
         </div>
